@@ -1,4 +1,19 @@
-# Codefuse-ModelCache LLMs Semantic Cache
+<div align="center">
+<h1>
+Codefuse-ModelCache
+</h1>
+</div>
+
+<p align="center">
+<div align="center">
+<h4 align="center">
+    <p>
+        <a href="https://github.com/codefuse-ai/CodeFuse-ModelCache/blob/main/README.md">中文</a> |
+	    <b>English</b> 
+    <p>
+</h4>
+</div>
+
 ## Contents
 - [news](#news)
 - [Introduction](#Introduction)
