@@ -74,7 +74,7 @@ res = requests.post(url, headers=headers, json=json.dumps(data))
 ## Articles
 Coming soon...
 ## modules
-![image.png](https://intranetproxy.alipay.com/skylark/lark/0/2023/png/275821/1698031968643-35914fc7-bb62-455e-9431-69bca8ba3368.png#clientId=uf441e764-1311-4&from=paste&height=408&id=h5p1L&originHeight=1152&originWidth=1796&originalType=binary&ratio=2&rotation=0&showTitle=false&size=465700&status=done&style=none&taskId=u6f53deb1-7821-47e0-af8a-87d899e3f7a&title=&width=636)
+![modelcache modules](docs/modelcache_modules.png)
 ## Core-Features
 In ModelCache, we adopted the main idea of GPTCache,  includes core modules: adapter, embedding, similarity, and data_manager. The adapter module is responsible for handling the business logic of various tasks and can connect the embedding, similarity, and data_manager modules. The embedding module is mainly responsible for converting text into semantic vector representations, it transforms user queries into vector form.The rank module is used for sorting and evaluating the similarity of the recalled vectors. The data_manager module is primarily used for managing the database. In order to better facilitate industrial applications, we have made architectural and functional upgrades as follows:
 

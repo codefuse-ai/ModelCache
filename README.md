@@ -75,7 +75,7 @@ res = requests.post(url, headers=headers, json=json.dumps(data))
 ## 文章
 敬请期待
 ## 架构大图
-![image.png](https://intranetproxy.alipay.com/skylark/lark/0/2023/png/275821/1698031968643-35914fc7-bb62-455e-9431-69bca8ba3368.png#clientId=uf441e764-1311-4&from=paste&height=408&id=h5p1L&originHeight=1152&originWidth=1796&originalType=binary&ratio=2&rotation=0&showTitle=false&size=465700&status=done&style=none&taskId=u6f53deb1-7821-47e0-af8a-87d899e3f7a&title=&width=636)
+![modelcache modules](docs/modelcache_modules.png)
 ## 核心功能
 在ModelCache中，沿用了GPTCache的主要思想，包含了一系列核心模块：adapter、embedding、similarity和data_manager。adapter模块主要功能是处理各种任务的业务逻辑，并且能够将embedding、similarity、data_manager等模块串联起来；embedding模块主要负责将文本转换为语义向量表示，它将用户的查询转换为向量形式，并用于后续的召回或存储操作；rank模块用于对召回的向量进行相似度排序和评估；data_manager模块主要用于管理数据库。同时，为了更好的在工业界落地，我们做了架构和功能上的升级，如下：
 
