@@ -35,6 +35,7 @@ class ChatCompletion(openai.ChatCompletion):
             logging.info('adapt_insert_e: {}'.format(e))
             return 'adapt_insert_exception'
 
+
     @classmethod
     def create_remove(cls, *args, **kwargs):
         try:
