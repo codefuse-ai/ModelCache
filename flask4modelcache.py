@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-import json
+import time
+from datetime import datetime
 from flask import Flask, request
 import logging
-from datetime import datetime
 import configparser
-import time
 import json
 from modelcache import cache
 from modelcache.adapter import adapter
@@ -105,10 +104,12 @@ def user_backend():
 
     if request_type == 'query':
         try:
+            start_time = time.time()
             response = adapter.ChatCompletion.create_query(
                 scope={"model": model},
                 query=query
             )
+            delta_time = '{}s'.format(round(time.time() - start_time, 2))
             if response is None:
                 result = {"errorCode": 0, "errorDesc": '', "cacheHit": False, "delta_time": delta_time, "hit_query": '',
                           "answer": ''}
@@ -120,6 +121,7 @@ def user_backend():
                 hit_query = response_hitquery(response)
                 result = {"errorCode": 0, "errorDesc": '', "cacheHit": True, "delta_time": delta_time,
                           "hit_query": hit_query, "answer": answer}
+            delta_time_log = round(time.time() - start_time, 2)
             future = executor.submit(save_query_info, result, model, query, delta_time_log)
         except Exception as e:
             result = {"errorCode": 202, "errorDesc": e, "cacheHit": False, "delta_time": 0,

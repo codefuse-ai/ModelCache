@@ -147,3 +147,4 @@ dmypy.json
 /embedding_npy
 /flask_server
 *.bin
+*ini
