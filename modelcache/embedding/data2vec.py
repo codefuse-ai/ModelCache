@@ -5,7 +5,6 @@ import numpy as np
 import torch
 from transformers import BertTokenizer, BertModel
 from modelcache.embedding.base import BaseEmbedding
-# from modelcache.utils.env_config import get_data2vec_model
 
 
 def mean_pooling(model_output, attention_mask):
