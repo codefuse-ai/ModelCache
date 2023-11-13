@@ -90,6 +90,151 @@ res = requests.post(url, headers=headers, json=json.dumps(data))
 Coming soon...
 ## modules
 ![modelcache modules](docs/modelcache_modules_en.png)
+## Function-Comparison
+In terms of functionality, we have made several changes to the git repository. Firstly, we have addressed the network issues with huggingface and enhanced the inference speed by introducing local inference capabilities for embeddings. Additionally, considering the limitations of the SqlAlchemy framework, we have completely revamped the module responsible for interacting with relational databases, enabling more flexible database operations. In practical scenarios, LLM products often require integration with multiple users and multiple models. Hence, we have added support for multi-tenancy in the ModelCache, while also making preliminary compatibility adjustments for system commands and multi-turn dialogue.
+
+<html>
+<head>
+<style>
+table, th, td {
+  border-collapse: collapse;
+  text-align: left;
+  padding: 10px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+.checkmark {
+  font-size: 24px;
+}
+
+</style>
+</head>
+<body>
+
+<table>
+  <tr>
+    <th rowspan="2">Module</th>
+    <th rowspan="2">Function</th>
+
+  </tr>
+  <tr>
+    <th>ModelCache</th>
+    <th>GPTCache</th>
+  </tr>
+  <tr>
+    <td rowspan="2">Basic Interface</td>
+    <td>Data query interface</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td>Data writing interface</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td rowspan="3">Embedding</td>
+    <td>Embedding model configuration</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td>Large model embedding layer</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>BERT model long text processing</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td rowspan="2">Large model invocation</td>
+    <td>Decoupling from large models</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Local loading of embedding model</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td rowspan="2">Data isolation</td>
+    <td>Model data isolation</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td>Hyperparameter isolation</td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td rowspan="3">Databases</td>
+    <td>MySQL</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td>Milvus</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td>OceanBase</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td rowspan="3">Session management</td>
+    <td>Single-turn dialogue</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td>System commands</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Multi-turn dialogue</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td rowspan="2">Data management</td>
+    <td>Data persistence</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td>One-click cache clearance</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td rowspan="2">Tenant management</td>
+    <td>Support for multi-tenancy</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Milvus multi-collection capability</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Other</td>
+    <td>Long-short dialogue distinction</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+</table>
+
+</body>
+</html>
+
 ## Core-Features
 In ModelCache, we adopted the main idea of GPTCache,  includes core modules: adapter, embedding, similarity, and data_manager. The adapter module is responsible for handling the business logic of various tasks and can connect the embedding, similarity, and data_manager modules. The embedding module is mainly responsible for converting text into semantic vector representations, it transforms user queries into vector form.The rank module is used for sorting and evaluating the similarity of the recalled vectors. The data_manager module is primarily used for managing the database. In order to better facilitate industrial applications, we have made architectural and functional upgrades as follows:
 
