@@ -90,6 +90,149 @@ res = requests.post(url, headers=headers, json=json.dumps(data))
 敬请期待
 ## 架构大图
 ![modelcache modules](docs/modelcache_modules.png)
+## 功能对比
+功能方面，为了解决huggingface网络问题并提升推理速度，增加了embedding本地推理能力。鉴于SqlAlchemy框架存在一些限制，我们对关系数据库交互模块进行了重写，以更灵活地实现数据库操作。在实践中，大型模型产品需要与多个用户和多个模型对接，因此在ModelCache中增加了对多租户的支持，同时也初步兼容了系统指令和多轮会话。
+<html>
+<head>
+<style>
+table, th, td {
+  border-collapse: collapse;
+  text-align: left;
+  padding: 8px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+.checkmark {
+  font-size: 24px;
+}
+
+</style>
+</head>
+<body>
+
+<table>
+  <tr>
+    <th rowspan="2">模块</th>
+    <th rowspan="2">功能</th>
+
+  </tr>
+  <tr>
+    <th>ModelCache</th>
+    <th>GPTCache</th>
+  </tr>
+  <tr>
+    <td rowspan="2">基础接口</td>
+    <td>数据查询接口</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td>数据写入接口</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td rowspan="3">Embedding</td>
+    <td>embedding模型配置</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td>大模型embedding层</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>bert模型长文本处理</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td rowspan="2">Large model invocation</td>
+    <td>是否与大模型解耦</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>embeddingg模型本地加载</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td rowspan="2">数据隔离</td>
+    <td>模型数据隔离</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td>超参数隔离</td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td rowspan="3">数据库</td>
+    <td>MySQL</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td>Milvus</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td>OceanBase</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td rowspan="3">会话管理</td>
+    <td>单轮回话</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td>system指令</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>多轮回话</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td rowspan="2">数据管理</td>
+    <td>数据持久化</td>
+    <td class="checkmark">&#9745; </td>
+    <td class="checkmark">&#9745; </td>
+  </tr>
+  <tr>
+    <td>一键清空缓存</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td rowspan="2">租户管理</td>
+    <td>支持多租户（多模型）</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>milvus多表能力</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>其他</td>
+    <td>长短对话区分能力</td>
+    <td class="checkmark">&#9745; </td>
+    <td></td>
+  </tr>
+</table>
+
+</body>
+</html>
 ## 核心功能
 在ModelCache中，沿用了GPTCache的主要思想，包含了一系列核心模块：adapter、embedding、similarity和data_manager。adapter模块主要功能是处理各种任务的业务逻辑，并且能够将embedding、similarity、data_manager等模块串联起来；embedding模块主要负责将文本转换为语义向量表示，它将用户的查询转换为向量形式，并用于后续的召回或存储操作；rank模块用于对召回的向量进行相似度排序和评估；data_manager模块主要用于管理数据库。同时，为了更好的在工业界落地，我们做了架构和功能上的升级，如下：
 
