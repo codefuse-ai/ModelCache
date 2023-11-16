@@ -139,7 +139,6 @@ dmypy.json
 **/.chroma
 
 /fuhui_dev
-*.txt
 *.index
 *model.onnx
 
