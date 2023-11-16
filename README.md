@@ -10,7 +10,7 @@ Codefuse-ModelCache
     <p>
         <a href="https://github.com/codefuse-ai/CodeFuse-ModelCache/blob/main/README_CN.md">中文</a> |
 	    <b>English</b> 
-    <p>
+    </p>
 </h4>
 </div>
 
@@ -92,24 +92,6 @@ Coming soon...
 ![modelcache modules](docs/modelcache_modules_20231114.png)
 ## Function-Comparison
 In terms of functionality, we have made several changes to the git repository. Firstly, we have addressed the network issues with huggingface and enhanced the inference speed by introducing local inference capabilities for embeddings. Additionally, considering the limitations of the SqlAlchemy framework, we have completely revamped the module responsible for interacting with relational databases, enabling more flexible database operations. In practical scenarios, LLM products often require integration with multiple users and multiple models. Hence, we have added support for multi-tenancy in the ModelCache, while also making preliminary compatibility adjustments for system commands and multi-turn dialogue.
-
-<html>
-<head>
-<style>
-table, th, td {
-  border-collapse: collapse;
-  text-align: left;
-  padding: 10px;
-  margin-left: 20px;
-  margin-right: 20px;
-}
-.checkmark {
-  font-size: 24px;
-}
-
-</style>
-</head>
-<body>
 
 <table>
   <tr>
@@ -232,8 +214,6 @@ table, th, td {
   </tr>
 </table>
 
-</body>
-</html>
 
 ## Core-Features
 In ModelCache, we adopted the main idea of GPTCache,  includes core modules: adapter, embedding, similarity, and data_manager. The adapter module is responsible for handling the business logic of various tasks and can connect the embedding, similarity, and data_manager modules. The embedding module is mainly responsible for converting text into semantic vector representations, it transforms user queries into vector form.The rank module is used for sorting and evaluating the similarity of the recalled vectors. The data_manager module is primarily used for managing the database. In order to better facilitate industrial applications, we have made architectural and functional upgrades as follows:
