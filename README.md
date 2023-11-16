@@ -93,22 +93,6 @@ Coming soon...
 ## Function-Comparison
 In terms of functionality, we have made several changes to the git repository. Firstly, we have addressed the network issues with huggingface and enhanced the inference speed by introducing local inference capabilities for embeddings. Additionally, considering the limitations of the SqlAlchemy framework, we have completely revamped the module responsible for interacting with relational databases, enabling more flexible database operations. In practical scenarios, LLM products often require integration with multiple users and multiple models. Hence, we have added support for multi-tenancy in the ModelCache, while also making preliminary compatibility adjustments for system commands and multi-turn dialogue.
 
-<head>
-<style>
-table, th, td {
-  border-collapse: collapse;
-  text-align: left;
-  padding: 10px;
-  margin-left: 20px;
-  margin-right: 20px;
-}
-.checkmark {
-  font-size: 24px;
-}
-
-</style>
-</head>
-
 <table>
   <tr>
     <th rowspan="2">Module</th>
