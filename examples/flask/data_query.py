@@ -6,7 +6,7 @@ import requests
 def run():
     url = 'http://127.0.0.1:5000/modelcache'
     type = 'query'
-    scope = {"model": "CODEGPT-1109"}
+    scope = {"model": "CODEGPT-1117"}
     query = [{"role": "system", "content": "你是一个python助手"}, {"role": "user", "content": "hello"}]
     data = {'type': type, 'scope': scope, 'query': query}
 

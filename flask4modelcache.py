@@ -14,7 +14,6 @@ from modelcache.processor.pre import insert_multi_splicing
 from concurrent.futures import ThreadPoolExecutor
 from modelcache.utils.model_filter import model_blacklist_filter
 from modelcache.embedding import Data2VecAudio
-# from modelcache.maya_embedding_service.maya_embedding_service import get_cache_embedding_text2vec
 
 
 # 创建一个Flask实例
@@ -113,7 +112,8 @@ def user_backend():
             if response is None:
                 result = {"errorCode": 0, "errorDesc": '', "cacheHit": False, "delta_time": delta_time, "hit_query": '',
                           "answer": ''}
-            elif response in ['adapt_query_exception']:
+            # elif response in ['adapt_query_exception']:
+            elif isinstance(response, str):
                 result = {"errorCode": 201, "errorDesc": response, "cacheHit": False, "delta_time": delta_time,
                           "hit_query": '', "answer": ''}
             else:
@@ -124,7 +124,7 @@ def user_backend():
             delta_time_log = round(time.time() - start_time, 2)
             future = executor.submit(save_query_info, result, model, query, delta_time_log)
         except Exception as e:
-            result = {"errorCode": 202, "errorDesc": e, "cacheHit": False, "delta_time": 0,
+            result = {"errorCode": 202, "errorDesc": str(e), "cacheHit": False, "delta_time": 0,
                       "hit_query": '', "answer": ''}
             logging.info('result: {}'.format(result))
 
@@ -138,19 +138,16 @@ def user_backend():
                     chat_info=chat_info
                 )
             except Exception as e:
-                result = {"errorCode": 303, "errorDesc": e, "writeStatus": "exception"}
+                result = {"errorCode": 302, "errorDesc": str(e), "writeStatus": "exception"}
                 return json.dumps(result, ensure_ascii=False)
 
-            if response in ['adapt_insert_exception']:
-                result = {"errorCode": 301, "errorDesc": response, "writeStatus": "exception"}
-            elif response == 'success':
+            if response == 'success':
                 result = {"errorCode": 0, "errorDesc": "", "writeStatus": "success"}
             else:
-                result = {"errorCode": 302, "errorDesc": response,
-                          "writeStatus": "exception"}
+                result = {"errorCode": 301, "errorDesc": response, "writeStatus": "exception"}
             return json.dumps(result, ensure_ascii=False)
         except Exception as e:
-            result = {"errorCode": 304, "errorDesc": e, "writeStatus": "exception"}
+            result = {"errorCode": 303, "errorDesc": str(e), "writeStatus": "exception"}
             return json.dumps(result, ensure_ascii=False)
 
     if request_type == 'remove':
@@ -162,13 +159,11 @@ def user_backend():
             remove_type=remove_type,
             id_list=id_list
         )
-
         if not isinstance(response, dict):
             result = {"errorCode": 401, "errorDesc": "", "response": response, "removeStatus": "exception"}
             return json.dumps(result)
 
         state = response.get('status')
-
         if state == 'success':
             result = {"errorCode": 0, "errorDesc": "", "response": response, "writeStatus": "success"}
         else:
