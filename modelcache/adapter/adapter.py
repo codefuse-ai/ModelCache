@@ -21,8 +21,7 @@ class ChatCompletion(openai.ChatCompletion):
                 **kwargs
             )
         except Exception as e:
-            return 'adapt_query_exception'
-
+            return str(e)
 
     @classmethod
     def create_insert(cls, *args, **kwargs):
@@ -32,9 +31,7 @@ class ChatCompletion(openai.ChatCompletion):
                 **kwargs
             )
         except Exception as e:
-            logging.info('adapt_insert_e: {}'.format(e))
-            return 'adapt_insert_exception'
-
+            return str(e)
 
     @classmethod
     def create_remove(cls, *args, **kwargs):
@@ -45,7 +42,7 @@ class ChatCompletion(openai.ChatCompletion):
             )
         except Exception as e:
             logging.info('adapt_remove_e: {}'.format(e))
-            return 'adapt_remove_exception'
+            return str(e)
 
 
 def construct_resp_from_cache(return_message, return_query):

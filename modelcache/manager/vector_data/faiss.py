@@ -23,7 +23,7 @@ class Faiss(VectorBase):
         ids = np.array(id_array)
         self._index.add_with_ids(np_data, ids)
 
-    def search(self, data: np.ndarray, top_k: int = -1):
+    def search(self, data: np.ndarray, top_k: int = -1, model=None):
         if self._index.ntotal == 0:
             return None
         if top_k == -1:
@@ -32,6 +32,9 @@ class Faiss(VectorBase):
         dist, ids = self._index.search(np_data, top_k)
         ids = [int(i) for i in ids[0]]
         return list(zip(dist[0], ids))
+
+    def rebuild_col(self, ids=None):
+        return True
 
     def rebuild(self, ids=None):
         return True

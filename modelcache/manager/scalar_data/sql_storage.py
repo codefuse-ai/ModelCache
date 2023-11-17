@@ -14,7 +14,7 @@ class SQLStorage(CacheStorage):
     def __init__(
         self,
         db_type: str = "mysql",
-        config=None,
+        config=None
     ):
 
         self.host = config.get('mysql', 'host')
@@ -22,7 +22,6 @@ class SQLStorage(CacheStorage):
         self.username = config.get('mysql', 'username')
         self.password = config.get('mysql', 'password')
         self.database = config.get('mysql', 'database')
-
         self.pool = PooledDB(
             creator=pymysql,
             host=self.host,
@@ -78,7 +77,7 @@ class SQLStorage(CacheStorage):
         if isinstance(hit_query, list):
             hit_query = json.dumps(hit_query, ensure_ascii=False)
 
-        table_name = "cache_query_log_info"
+        table_name = "modelcache_query_log"
         insert_sql = "INSERT INTO {} (error_code, error_desc, cache_hit, model, query, delta_time, hit_query, answer) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)".format(table_name)
         conn = self.pool.connection()
         try:
@@ -90,7 +89,6 @@ class SQLStorage(CacheStorage):
         finally:
             # 关闭连接，将连接返回给连接池
             conn.close()
-        return id
 
     def get_data_by_id(self, key: int):
         table_name = "cache_codegpt_answer"

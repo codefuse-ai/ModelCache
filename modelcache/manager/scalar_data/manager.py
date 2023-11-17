@@ -2,6 +2,8 @@
 from modelcache.utils import import_sql_client
 from modelcache.utils.error import NotFoundError
 
+SQL_URL = {"sqlite": "./sqlite.db"}
+
 
 class CacheBase:
     """
@@ -15,12 +17,16 @@ class CacheBase:
 
     @staticmethod
     def get(name, **kwargs):
-        if name in ["sqlite", "mysql"]:
+
+        if name in ["mysql", "oceanbase"]:
             from modelcache.manager.scalar_data.sql_storage import SQLStorage
             config = kwargs.get("config")
-            # db_name = kwargs.get("db_name")
             import_sql_client(name)
             cache_base = SQLStorage(db_type=name, config=config)
+        elif name == 'sqlite':
+            from modelcache.manager.scalar_data.sql_storage_sqlite import SQLStorage
+            sql_url = kwargs.get("sql_url", SQL_URL[name])
+            cache_base = SQLStorage(db_type=name, url=sql_url)
         else:
             raise NotFoundError("cache store", name)
         return cache_base
