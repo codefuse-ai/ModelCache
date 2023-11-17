@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from modelcache import cache
-from modelcache.utils.error import NotInitError
+from modelcache.utils.error import NotInitError, RemoveError
 
 
 def adapt_remove(*args, **kwargs):
@@ -17,11 +17,10 @@ def adapt_remove(*args, **kwargs):
     if remove_type == 'delete_by_id':
         id_list = kwargs.pop("id_list", [])
         resp = chat_cache.data_manager.delete(id_list, model=model)
-
     elif remove_type == 'truncate_by_model':
         resp = chat_cache.data_manager.truncate(model)
-
     else:
-        resp = "remove_type_error"
+        # resp = "remove_type_error"
+        raise RemoveError()
     return resp
 

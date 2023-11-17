@@ -9,6 +9,11 @@ class NotInitError(CacheError):
         super().__init__("The cache should be inited before using")
 
 
+class RemoveError(CacheError):
+    """Raise when the cache has been used before it's inited"""
+    def __init__(self):
+        super().__init__("The cache remove error")
+
 class NotFoundError(CacheError):
     """Raise when getting an unsupported store."""
     def __init__(self, store_type, current_type_name):
