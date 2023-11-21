@@ -88,7 +88,7 @@ headers = {"Content-Type": "application/json"}
 res = requests.post(url, headers=headers, json=json.dumps(data))
 ```
 ## 文章
-敬请期待
+https://mp.weixin.qq.com/s/ExIRu2o7yvXa6nNLZcCfhQ
 ## 架构大图
 ![modelcache modules](docs/modelcache_modules_20231114.png)
 ## 功能对比
