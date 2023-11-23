@@ -29,6 +29,9 @@ Codefuse-ModelCache
 ### Introduction
 Codefuse-ModelCache is a semantic cache for large language models (LLMs). By caching pre-generated model results, it reduces response time for similar requests and improves user experience. <br />This project aims to optimize services by introducing a caching mechanism. It helps businesses and research institutions reduce the cost of inference deployment, improve model performance and efficiency, and provide scalable services for large models.  Through open-source, we aim to share and exchange technologies related to large model semantic cache.
 ## Quick Deployment
+The project's startup scripts are divided into flask4modelcache.py and flask4modelcache_demo.py.
+- flask4modelcache_demo.py is a quick test service that embeds sqlite and faiss, and users do not need to be concerned about database-related matters.
+- flask4modelcache.py is the normal service that requires configuration of mysql and milvus database services.
 ### Dependencies
 
 - Python version: 3.8 and above
@@ -36,9 +39,13 @@ Codefuse-ModelCache is a semantic cache for large language models (LLMs). By cac
 ```shell
 pip install requirements.txt 
 ```
-### Environment Configuration
-Before starting the service, the following environment configurations should be performed:
+### Service Startup
+#### Demo Service Startup
+1. Download the embedding model bin file from the following address: [https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place the downloaded bin file in the model/text2vec-base-chinese folder.
+2. Start the backend service using the flask4modelcache_dome.py script.
 
+#### Normal Service Startup
+Before starting the service, the following environment configurations should be performed:
 1. Install the relational database MySQL and import the SQL file to create the data tables. The SQL file can be found at: reference_doc/create_table.sql
 2. Install the vector database Milvus.
 3. Add the database access information to the configuration files: 

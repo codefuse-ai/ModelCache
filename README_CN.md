@@ -28,6 +28,10 @@ Codefuse-ModelCache
 ## 项目简介
 Codefuse-ModelCache 是一个开源的大模型语义缓存系统，通过缓存已生成的模型结果，降低类似请求的响应时间，提升用户体验。该项目从服务优化角度出发，引入缓存机制，在资源有限和对实时性要求较高的场景下，帮助企业和研究机构降低推理部署成本、提升模型性能和效率、提供规模化大模型服务。我们希望通过开源，分享交流大模型语义Cache的相关技术。
 ## 快速部署
+项目中启动服务脚本分为flask4modelcache.py 和 flask4modelcache_demo.py，其中：
+
+- flask4modelcache_demo.py 为快速测试服务，内嵌了sqlite和faiss，用户无需关心数据库相关事宜。
+- flask4modelcache.py 为正常服务，需用户具备mysql和milvus等数据库服务。
 ### 环境依赖
 
 - python版本: 3.8及以上
@@ -35,10 +39,13 @@ Codefuse-ModelCache 是一个开源的大模型语义缓存系统，通过缓存
 ```shell
 pip install requirements.txt 
 ```
+### 服务启动
+#### Demo服务启动
+- 离线模型bin文件下载， 参考地址：[https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main)，并将下载的bin文件，放到 model/text2vec-base-chinese 文件夹中。
+- 执行flask4modelcache_demo.py脚本即可启动。
 
-### 环境配置
+#### 正常服务启动
 在启动服务前，应该进行如下环境配置：
-
 1. 安装关系数据库 mysql， 导入sql创建数据表，sql文件: reference_doc/create_table.sql
 2. 安装向量数据库milvus
 3. 在配置文件中添加数据库访问信息，配置文件为：
