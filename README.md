@@ -23,6 +23,7 @@ Codefuse-ModelCache
 - [Modules](#Modules)
 - [Core-Features](#Core-Features)
 - [Acknowledgements](#Acknowledgements)
+- [Contributing](#Contributing)
 ## news
 [2023.11.20] codefuse-ModelCache has integrated local storage, such as sqlite and faiss, providing users with the convenience of quickly initiating tests.
 [2023.08.26] codefuse-ModelCache...

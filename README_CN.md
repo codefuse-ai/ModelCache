@@ -22,6 +22,8 @@ Codefuse-ModelCache
 - [文章](#文章)
 - [架构大图](#架构大图)
 - [核心功能](#核心功能)
+- [致谢](#致谢)
+- [Contributing](#Contributing)
 ## 新闻
 [2023.11.20] codefuse-ModelCache增加本地存储能力, 适配了嵌入式数据库sqlite、faiss，方便用户快速启动测试。
 [2023.10.31] codefuse-ModelCache...
