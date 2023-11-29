@@ -22,6 +22,8 @@ Codefuse-ModelCache
 - [文章](#文章)
 - [架构大图](#架构大图)
 - [核心功能](#核心功能)
+- [致谢](#致谢)
+- [Contributing](#Contributing)
 ## 新闻
 [2023.11.20] codefuse-ModelCache增加本地存储能力, 适配了嵌入式数据库sqlite、faiss，方便用户快速启动测试。
 [2023.10.31] codefuse-ModelCache...
@@ -249,3 +251,5 @@ https://mp.weixin.qq.com/s/ExIRu2o7yvXa6nNLZcCfhQ
 ## 致谢
 本项目参考了以下开源项目，在此对相关项目和研究开发人员表示感谢。<br />[GPTCache](https://github.com/zilliztech/GPTCache)
 
+## Contributing
+ModelCache是一个非常有趣且有用的项目，我们相信这个项目有很大的潜力，无论你是经验丰富的开发者，还是刚刚入门的新手，都欢迎你为这个项目做出一些贡献，包括但不限于：提交问题和建议，参与代码编写，完善文档和示例。你的参与将会使这个项目变得更好，同时也会为开源社区做出贡献。
