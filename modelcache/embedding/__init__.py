@@ -3,6 +3,7 @@ from modelcache.utils.lazy_import import LazyImport
 huggingface = LazyImport("huggingface", globals(), "modelcache.embedding.huggingface")
 data2vec = LazyImport("data2vec", globals(), "modelcache.embedding.data2vec")
 llmEmb = LazyImport("llmEmb", globals(), "modelcache.embedding.llmEmb")
+fasttext = LazyImport("fasttext", globals(), "gptcache.embedding.fasttext")
 
 
 def Huggingface(model="sentence-transformers/all-mpnet-base-v2"):
@@ -15,3 +16,7 @@ def Data2VecAudio(model="facebook/data2vec-audio-base-960h"):
 
 def LlmEmb2vecAudio():
     return llmEmb.LlmEmb2Vec()
+
+
+def FastText(model="en", dim=None):
+    return fasttext.FastText(model, dim)
