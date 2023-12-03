@@ -48,3 +48,7 @@ def import_faiss():
 
 def import_torch():
     _check_library("torch")
+
+
+def import_fasttext():
+    _check_library("fasttext")
