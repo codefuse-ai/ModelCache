@@ -52,3 +52,12 @@ def import_torch():
 
 def import_fasttext():
     _check_library("fasttext")
+
+
+def import_paddle():
+    prompt_install("protobuf==3.20.0")
+    _check_library("paddlepaddle")
+
+
+def import_paddlenlp():
+    _check_library("paddlenlp")
