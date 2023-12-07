@@ -1,15 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-   Alipay.com Inc.
-   Copyright (c) 2004-2023 All Rights Reserved.
-   ------------------------------------------------------
-   File Name : paddlenlp.py
-   Author : fuhui.phe
-   Create Time : 2023/12/7 20:43
-   Description : description what the main function of this file
-   Change Activity: 
-        version0 : 2023/12/7 20:43 by fuhui.phe  init
-"""
 import numpy as np
 
 from modelcache.embedding.base import BaseEmbedding

@@ -1,15 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-   Alipay.com Inc.
-   Copyright (c) 2004-2023 All Rights Reserved.
-   ------------------------------------------------------
-   File Name : fasttext.py
-   Author : fuhui.phe
-   Create Time : 2023/12/3 15:40
-   Description : description what the main function of this file
-   Change Activity: 
-        version0 : 2023/12/3 15:40 by fuhui.phe  init
-"""
 import numpy as np
 import os
 from modelcache.utils import import_fasttext
