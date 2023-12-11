@@ -5,6 +5,7 @@ data2vec = LazyImport("data2vec", globals(), "modelcache.embedding.data2vec")
 llmEmb = LazyImport("llmEmb", globals(), "modelcache.embedding.llmEmb")
 fasttext = LazyImport("fasttext", globals(), "modelcache.embedding.fasttext")
 paddlenlp = LazyImport("paddlenlp", globals(), "modelcache.embedding.paddlenlp")
+timm = LazyImport("timm", globals(), "modelcache.embedding.timm")
 
 
 def Huggingface(model="sentence-transformers/all-mpnet-base-v2"):
@@ -25,3 +26,7 @@ def FastText(model="en", dim=None):
 
 def PaddleNLP(model="ernie-3.0-medium-zh"):
     return paddlenlp.PaddleNLP(model)
+
+
+def Timm(model="resnet50", device="default"):
+    return timm.Timm(model, device)

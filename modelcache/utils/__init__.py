@@ -61,3 +61,11 @@ def import_paddle():
 
 def import_paddlenlp():
     _check_library("paddlenlp")
+
+
+def import_timm():
+    _check_library("timm", package="timm")
+
+
+def import_pillow():
+    _check_library("PIL", package="pillow")
