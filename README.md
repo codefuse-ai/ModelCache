@@ -25,7 +25,8 @@ Codefuse-ModelCache
 - [Acknowledgements](#Acknowledgements)
 - [Contributing](#Contributing)
 ## news
-- [2023.11.20] codefuse-ModelCache has integrated local storage, such as sqlite and faiss, providing users with the convenience of quickly initiating tests.
+- 🔥🔥[2023.12.10] we integrate LLM embedding frameworks such as 'llmEmb', 'ONNX', 'PaddleNLP', 'FastText', alone with the image embedding framework 'timm', to bolster embedding functionality.
+- 🔥🔥[2023.11.20] codefuse-ModelCache has integrated local storage, such as sqlite and faiss, providing users with the convenience of quickly initiating tests.
 - [2023.08.26] codefuse-ModelCache...
 ### Introduction
 Codefuse-ModelCache is a semantic cache for large language models (LLMs). By caching pre-generated model results, it reduces response time for similar requests and improves user experience. <br />This project aims to optimize services by introducing a caching mechanism. It helps businesses and research institutions reduce the cost of inference deployment, improve model performance and efficiency, and provide scalable services for large models.  Through open-source, we aim to share and exchange technologies related to large model semantic cache.
