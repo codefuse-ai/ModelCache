@@ -6,12 +6,11 @@ from typing import List
 
 import numpy as np
 from modelcache.manager.vector_data.base import VectorBase, VectorData
-# from modelcache.utils import import_redis
+from modelcache.utils import import_redis
 # from modelcache.utils.log import gptcache_log
 
-# import_redis()
+import_redis()
 #
-# # pylint: disable=C0413
 # from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 # from redis.commands.search.query import Query
 # from redis.commands.search.field import TagField, VectorField
