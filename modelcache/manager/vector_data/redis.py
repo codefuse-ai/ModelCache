@@ -7,6 +7,9 @@ from typing import List
 import numpy as np
 from modelcache.manager.vector_data.base import VectorBase, VectorData
 from modelcache.utils import import_redis
+from redis.commands.search.query import Query
+from redis.commands.search.indexDefinition import IndexDefinition, IndexType
+
 # from modelcache.utils.log import gptcache_log
 
 import_redis()
