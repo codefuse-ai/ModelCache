@@ -2,15 +2,11 @@
 from typing import List
 
 import numpy as np
-from typing import List
-
-import numpy as np
 from modelcache.manager.vector_data.base import VectorBase, VectorData
 from modelcache.utils import import_redis
 from redis.commands.search.query import Query
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
-
-# from modelcache.utils.log import gptcache_log
+from modelcache.utils.log import modelcache_log
 
 import_redis()
 #
@@ -21,30 +17,6 @@ import_redis()
 
 
 class RedisVectorStore(VectorBase):
-    """ vector store: Redis
-
-    :param host: redis host, defaults to "localhost".
-    :type host: str
-    :param port: redis port, defaults to "6379".
-    :type port: str
-    :param username: redis username, defaults to "".
-    :type username: str
-    :param password: redis password, defaults to "".
-    :type password: str
-    :param dimension: the dimension of the vector, defaults to 0.
-    :type dimension: int
-    :param collection_name: the name of the index for Redis, defaults to "gptcache".
-    :type collection_name: str
-    :param top_k: the number of the vectors results to return, defaults to 1.
-    :type top_k: int
-
-    Example:
-        .. code-block:: python
-
-            from gptcache.manager import VectorBase
-
-            vector_base = VectorBase("redis", dimension=10)
-    """
     def __init__(
         self,
         host: str = "localhost",
