@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import time
-from datetime import datetime
 from flask import Flask, request
 import logging
 import configparser
@@ -14,7 +13,6 @@ from modelcache.processor.pre import insert_multi_splicing
 from concurrent.futures import ThreadPoolExecutor
 from modelcache.utils.model_filter import model_blacklist_filter
 from modelcache.embedding import Data2VecAudio
-
 
 # 创建一个Flask实例
 app = Flask(__name__)
@@ -36,13 +34,19 @@ def response_hitquery(cache_resp):
 data2vec = Data2VecAudio()
 mysql_config = configparser.ConfigParser()
 mysql_config.read('modelcache/config/mysql_config.ini')
+
 milvus_config = configparser.ConfigParser()
 milvus_config.read('modelcache/config/milvus_config.ini')
-# data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),
-#                                 VectorBase("milvus", dimension=data2vec.dimension, milvus_config=milvus_config))
+
+# redis_config = configparser.ConfigParser()
+# redis_config.read('modelcache/config/redis_config.ini')
+
 
 data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),
-                                VectorBase("redis", dimension=data2vec.dimension, milvus_config=milvus_config))
+                                VectorBase("milvus", dimension=data2vec.dimension, milvus_config=milvus_config))
+
+# data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),
+#                                 VectorBase("redis", dimension=data2vec.dimension, redis_config=redis_config))
 
 
 cache.init(
@@ -88,9 +92,9 @@ def user_backend():
             model = model.replace('.', '_')
         query = param_dict.get("query")
         chat_info = param_dict.get("chat_info")
-        if request_type is None or request_type not in ['query', 'insert', 'detox', 'remove']:
+        if request_type is None or request_type not in ['query', 'insert', 'remove', 'register']:
             result = {"errorCode": 102,
-                      "errorDesc": "type exception, should one of ['query', 'insert', 'detox', 'remove']",
+                      "errorDesc": "type exception, should one of ['query', 'insert', 'remove', 'register']",
                       "cacheHit": False, "delta_time": 0, "hit_query": '', "answer": ''}
             cache.data_manager.save_query_resp(result, model=model, query='', delta_time=0)
             return json.dumps(result)
@@ -171,6 +175,17 @@ def user_backend():
             result = {"errorCode": 0, "errorDesc": "", "response": response, "writeStatus": "success"}
         else:
             result = {"errorCode": 402, "errorDesc": "", "response": response, "writeStatus": "exception"}
+        return json.dumps(result)
+
+    if request_type == 'register':
+        # iat_type = param_dict.get("iat_type")
+        response = adapter.ChatCompletion.create_register(
+            model=model
+        )
+        if response in ['create_success', 'already_exists']:
+            result = {"errorCode": 0, "errorDesc": "", "response": response, "writeStatus": "success"}
+        else:
+            result = {"errorCode": 502, "errorDesc": "", "response": response, "writeStatus": "exception"}
         return json.dumps(result)
 
 

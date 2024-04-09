@@ -10,3 +10,5 @@ Requests==2.31.0
 torch==2.1.0
 transformers==4.34.1
 faiss-cpu==1.7.4
+redis==5.0.1
+

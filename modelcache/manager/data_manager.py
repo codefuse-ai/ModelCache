@@ -256,6 +256,9 @@ class SSDataManager(DataManager):
         return {'status': 'success', 'milvus': 'delete_count: '+str(v_delete_count),
                 'mysql': 'delete_count: '+str(s_delete_count)}
 
+    def create_index(self, model, **kwargs):
+        return self.v.create(model)
+
     def truncate(self, model_name):
         # model = kwargs.pop("model", None)
         # drop milvus data
