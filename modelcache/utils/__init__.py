@@ -69,3 +69,7 @@ def import_timm():
 
 def import_pillow():
     _check_library("PIL", package="pillow")
+
+
+def import_redis():
+    _check_library("redis")

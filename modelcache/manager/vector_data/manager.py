@@ -68,6 +68,28 @@ class VectorBase:
                 local_mode=local_mode,
                 local_data=local_data
             )
+        elif name == "redis":
+            from modelcache.manager.vector_data.redis import RedisVectorStore
+            dimension = kwargs.get("dimension", DIMENSION)
+            VectorBase.check_dimension(dimension)
+
+            redis_config = kwargs.get("redis_config")
+            host = redis_config.get('redis', 'host')
+            port = redis_config.get('redis', 'port')
+            user = redis_config.get('redis', 'user')
+            password = redis_config.get('redis', 'password')
+            namespace = kwargs.get("namespace", "")
+            # collection_name = kwargs.get("collection_name", COLLECTION_NAME)
+
+            vector_base = RedisVectorStore(
+                host=host,
+                port=port,
+                username=user,
+                password=password,
+                namespace=namespace,
+                top_k=top_k,
+                dimension=dimension,
+            )
         elif name == "faiss":
             from modelcache.manager.vector_data.faiss import Faiss
 
