@@ -38,8 +38,11 @@ mysql_config = configparser.ConfigParser()
 mysql_config.read('modelcache/config/mysql_config.ini')
 milvus_config = configparser.ConfigParser()
 milvus_config.read('modelcache/config/milvus_config.ini')
+# data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),
+#                                 VectorBase("milvus", dimension=data2vec.dimension, milvus_config=milvus_config))
+
 data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),
-                                VectorBase("milvus", dimension=data2vec.dimension, milvus_config=milvus_config))
+                                VectorBase("redis", dimension=data2vec.dimension, milvus_config=milvus_config))
 
 
 cache.init(
