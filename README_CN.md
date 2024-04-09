@@ -100,7 +100,7 @@ res = requests.post(url, headers=headers, json=json.dumps(data))
 ## 文章
 https://mp.weixin.qq.com/s/ExIRu2o7yvXa6nNLZcCfhQ
 ## 架构大图
-![modelcache modules](docs/modelcache_modules_20231114.png)
+![modelcache modules](docs/modelcache_modules_20240409.png)
 ## 功能对比
 功能方面，为了解决huggingface网络问题并提升推理速度，增加了embedding本地推理能力。鉴于SqlAlchemy框架存在一些限制，我们对关系数据库交互模块进行了重写，以更灵活地实现数据库操作。在实践中，大型模型产品需要与多个用户和多个模型对接，因此在ModelCache中增加了对多租户的支持，同时也初步兼容了系统指令和多轮会话。
 
