@@ -57,7 +57,6 @@ cache.init(
     insert_pre_embedding_func=insert_multi_splicing,
 )
 
-# cache.set_openai_key()
 global executor
 executor = ThreadPoolExecutor(max_workers=6)
 
