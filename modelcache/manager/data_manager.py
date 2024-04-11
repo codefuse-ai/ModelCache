@@ -260,22 +260,21 @@ class SSDataManager(DataManager):
         return self.v.create(model)
 
     def truncate(self, model_name):
-        # model = kwargs.pop("model", None)
-        # drop milvus data
+        # drop vector base data
         try:
-            resp = self.v.rebuild_col(model_name)
+            vector_resp = self.v.rebuild_col(model_name)
         except Exception as e:
-            return {'status': 'failed', 'milvus': 'truncate milvus data failed, please check! e: {}'.format(e),
-                    'mysql': 'unexecuted'}
-        if resp:
-            return {'status': 'failed', 'milvus': resp, 'mysql': 'unexecuted'}
+            return {'status': 'failed', 'VectorDB': 'truncate VectorDB data failed, please check! e: {}'.format(e),
+                    'ScalarDB': 'unexecuted'}
+        if vector_resp:
+            return {'status': 'failed', 'VectorDB': vector_resp, 'ScalarDB': 'unexecuted'}
+        # drop scalar base data
         try:
             delete_count = self.s.model_deleted(model_name)
         except Exception as e:
-            # return 'truncate milvus data failed, please check!'
-            return {'status': 'failed', 'milvus': 'rebuild',
-                    'mysql': 'truncate mysql data failed, please check! e: {}'.format(e)}
-        return {'status': 'success', 'milvus': 'rebuild', 'mysql': 'delete_count: ' + str(delete_count)}
+            return {'status': 'failed', 'VectorDB': 'rebuild',
+                    'ScalarDB': 'truncate scalar data failed, please check! e: {}'.format(e)}
+        return {'status': 'success', 'VectorDB': 'rebuild', 'ScalarDB': 'delete_count: ' + str(delete_count)}
 
     def flush(self):
         self.s.flush()

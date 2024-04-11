@@ -137,3 +137,4 @@ dmypy.json
 *.bin
 *ini
 *.ini
+**/modelcache_serving.py

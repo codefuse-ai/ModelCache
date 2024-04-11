@@ -124,7 +124,7 @@ class RedisVectorStore(VectorBase):
             self.create_index(index_name_model, index_prefix)
         except Exception as e:
             raise ValueError(str(e))
-        return 'rebuild success'
+        # return 'rebuild success'
 
     def delete(self, ids) -> None:
         pipe = self._client.pipeline()
