@@ -136,3 +136,4 @@ dmypy.json
 /flask_server
 *.bin
 *ini
+*.ini

@@ -25,6 +25,7 @@ Codefuse-ModelCache
 - [致谢](#致谢)
 - [Contributing](#Contributing)
 ## 新闻
+- 🔥🔥[2024.04.09] 增加了多租户场景中Redis Search存储和检索embedding的能力，可以将Cache和向量数据库的交互耗时降低至10ms内。
 - 🔥🔥[2023.12.10] 增加llmEmb、onnx、paddlenlp、fasttext等LLM embedding框架，并增加timm 图片embedding框架，用于提供更丰富的embedding能力。
 - 🔥🔥[2023.11.20] codefuse-ModelCache增加本地存储能力, 适配了嵌入式数据库sqlite、faiss，方便用户快速启动测试。
 - [2023.10.31] codefuse-ModelCache...
