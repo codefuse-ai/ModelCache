@@ -25,7 +25,7 @@ Codefuse-ModelCache
 - [Acknowledgements](#Acknowledgements)
 - [Contributing](#Contributing)
 ## news
-- 🔥🔥[2024.04.09] Added the ability of Redis Search to store and retrieve embeddings in multi-tenant scene, this can reduce the interaction time between Cache and vector databases to 10ms.
+- 🔥🔥[2024.04.09] Add Redis Search to store and retrieve embeddings in multi-tenant scene, this can reduce the interaction time between Cache and vector databases to 10ms.
 - 🔥🔥[2023.12.10] we integrate LLM embedding frameworks such as 'llmEmb', 'ONNX', 'PaddleNLP', 'FastText', alone with the image embedding framework 'timm', to bolster embedding functionality.
 - 🔥🔥[2023.11.20] codefuse-ModelCache has integrated local storage, such as sqlite and faiss, providing users with the convenience of quickly initiating tests.
 - [2023.08.26] codefuse-ModelCache...
