@@ -135,6 +135,6 @@ dmypy.json
 /embedding_npy
 /flask_server
 *.bin
-*ini
-*.ini
 **/modelcache_serving.py
+#*ini
+#*.ini
