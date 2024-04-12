@@ -136,3 +136,6 @@ dmypy.json
 /flask_server
 *.bin
 **/modelcache_serving.py
+**/mysql_config.ini
+**/redis_config.ini
+**/milvus_config.ini
