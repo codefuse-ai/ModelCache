@@ -136,5 +136,4 @@ dmypy.json
 /flask_server
 *.bin
 **/modelcache_serving.py
-#*ini
-#*.ini
+*.ini
