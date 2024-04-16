@@ -21,10 +21,7 @@ class RedisVectorStore(VectorBase):
         port: str = "6379",
         username: str = "",
         password: str = "",
-        # dimension: int = 0,
         dimension: int = 0,
-        i_dimension: int = 0,
-        t_dimension: int = 0,
         top_k: int = 1,
         namespace: str = "",
     ):
@@ -37,8 +34,6 @@ class RedisVectorStore(VectorBase):
         )
         self.top_k = top_k
         self.dimension = dimension
-        self.i_dimension = i_dimension
-        self.t_dimension = t_dimension
         self.namespace = namespace
         self.doc_prefix = f"{self.namespace}doc:"
 

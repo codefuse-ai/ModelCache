@@ -21,19 +21,23 @@ class RedisVectorStore(VectorBase):
         port: str = "6379",
         username: str = "",
         password: str = "",
-        dimension: int = 0,
+        mm_dimension: int = 0,
+        i_dimension: int = 0,
+        t_dimension: int = 0,
         top_k: int = 1,
         namespace: str = "",
     ):
-        if dimension <= 0:
+        if mm_dimension <= 0:
             raise ValueError(
-                f"invalid `dim` param: {dimension} in the Milvus vector store."
+                f"invalid `dim` param: {mm_dimension} in the Milvus vector store."
             )
         self._client = Redis(
             host=host, port=int(port), username=username, password=password
         )
         self.top_k = top_k
-        self.dimension = dimension
+        self.mm_dimension = mm_dimension
+        self.i_dimension = i_dimension
+        self.t_dimension = t_dimension
         self.namespace = namespace
         self.doc_prefix = f"{self.namespace}doc:"
 
@@ -47,8 +51,16 @@ class RedisVectorStore(VectorBase):
         modelcache_log.info("Index already exists")
         return True
 
-    def create_index(self, index_name, index_prefix):
-        dimension = self.dimension
+    def create_index(self, index_name, mm_type, index_prefix):
+        # dimension = self.dimension
+        if mm_type == 'IMG_TEXT':
+            dimension = self.mm_dimension
+        elif mm_type == 'IMG':
+            dimension = self.i_dimension
+        elif mm_type == 'TEXT':
+            dimension = self.t_dimension
+        else:
+            raise ValueError('dimension type exception')
         print('dimension: {}'.format(dimension))
         if self._check_index_exists(index_name):
             modelcache_log.info(
@@ -77,13 +89,17 @@ class RedisVectorStore(VectorBase):
             )
             return 'create_success'
 
-    def mul_add(self, datas: List[VectorData], model=None):
-        # pipe = self._client.pipeline()
+    def mul_add(self, datas: List[VectorData], model=None, mm_type=None):
         for data in datas:
             id: int = data.id
             embedding = data.data.astype(np.float32).tobytes()
+
+            collection_name = get_collection_iat_name(model, mm_type)
+            index_prefix = get_collection_iat_prefix(model, mm_type)
+
             id_field_name = "data_id"
             embedding_field_name = "data_vector"
+
             obj = {id_field_name: id, embedding_field_name: embedding}
             index_prefix = get_index_prefix(model)
             self._client.hset(f"{index_prefix}{id}", mapping=obj)

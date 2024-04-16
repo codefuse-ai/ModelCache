@@ -27,6 +27,8 @@ from modelcache.processor.pre import mm_query_dict
 from concurrent.futures import ThreadPoolExecutor
 from modelcache.maya_embedding_service.maya_multi_embedding_service import get_embedding_multi
 from modelcache.maya_embedding_service.maya_multi_embedding_service import get_embedding_multi_concurrent_sin
+from modelcache.processor.pre import query_multi_splicing
+from modelcache.processor.pre import insert_multi_splicing
 
 
 def save_query_info(result, model, query, delta_time_log):
@@ -73,6 +75,8 @@ class UserBackend:
             embedding_concurrent_func=get_embedding_multi_concurrent_sin,
             data_manager=data_manager,
             similarity_evaluation=SearchDistanceEvaluation(),
+            query_pre_embedding_func=query_multi_splicing,
+            insert_pre_embedding_func=insert_multi_splicing,
             mm_insert_pre_embedding_func=mm_insert_dict,
             mm_query_pre_embedding_func=mm_query_dict,
         )
