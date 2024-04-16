@@ -21,25 +21,19 @@ class RedisVectorStore(VectorBase):
         port: str = "6379",
         username: str = "",
         password: str = "",
-        # dimension: int = 0,
-        mm_dimension: int = 0,
-        i_dimension: int = 0,
-        t_dimension: int = 0,
+        dimension: int = 0,
         top_k: int = 1,
         namespace: str = "",
     ):
-        if mm_dimension <= 0:
+        if dimension <= 0:
             raise ValueError(
-                f"invalid `dim` param: {mm_dimension} in the Redis vector store."
+                f"invalid `dim` param: {dimension} in the Milvus vector store."
             )
         self._client = Redis(
             host=host, port=int(port), username=username, password=password
         )
         self.top_k = top_k
-        # self.dimension = dimension
-        self.mm_dimension = mm_dimension
-        self.i_dimension = i_dimension
-        self.t_dimension = t_dimension
+        self.dimension = dimension
         self.namespace = namespace
         self.doc_prefix = f"{self.namespace}doc:"
 

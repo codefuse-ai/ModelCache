@@ -108,3 +108,14 @@ def multi_analysis(dialog_str):
 
     # 输出结果
     return result_list
+
+
+def mm_insert_dict(data: Dict[str, Any], **_: Dict[str, Any]) -> Any:
+    print('chat_info: {}'.format(data.get("chat_info")))
+    query_dict = data.get("chat_info")[-1]['query']
+    return query_dict
+
+
+def mm_query_dict(data: Dict[str, Any], **_: Dict[str, Any]) -> Any:
+    query_dict = data.get("query")
+    return query_dict

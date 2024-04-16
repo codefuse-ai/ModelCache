@@ -15,21 +15,18 @@ from datetime import datetime
 from typing import Dict
 import time
 import json
-import uuid
-from gptcache import cache
-from gptcache.adapter import codegpt
-from gptcache.manager import CacheBase, VectorBase, get_data_manager
-from gptcache.similarity_evaluation.distance import SearchDistanceEvaluation
-from gptcache.processor.pre import insert_iat_dict
-from gptcache.processor.pre import query_iat_dict
-from gptcache.utils.env_config import get_table_suffix
+import configparser
+from modelcache import cache
+# from modelcache.adapter import adapter
+from modelcache.adapter_mm import adapter
+# from modelcache.manager import CacheBase, VectorBase, get_data_manager
+from modelcache.manager_mm import CacheBase, VectorBase, get_data_manager
+from modelcache.similarity_evaluation.distance import SearchDistanceEvaluation
+from modelcache.processor.pre import mm_insert_dict
+from modelcache.processor.pre import mm_query_dict
 from concurrent.futures import ThreadPoolExecutor
-from gptcache.maya_embedding_service.maya_multi_embedding_service import get_embedding_multi
-from gptcache.maya_embedding_service.maya_multi_embedding_service import get_embedding_multi_concurrent_sin
-# from gptcache.utils.modle_version_manager import model_version_load
-# from gptcache.utils.modle_version_manager import get_all_collections
-# from gptcache.utils.collection_util import get_collection_iat_name
-# from gptcache.utils.collection_util import get_collection_iat_type
+from modelcache.maya_embedding_service.maya_multi_embedding_service import get_embedding_multi
+from modelcache.maya_embedding_service.maya_multi_embedding_service import get_embedding_multi_concurrent_sin
 
 
 def save_query_info(result, model, query, delta_time_log):
@@ -55,43 +52,37 @@ def response_hitquery(cache_resp):
 # python类示例
 class UserBackend:
     def __init__(self):
-        self.table_suffix = get_table_suffix()
         image_dimension = 768
         text_dimension = 768
-        # data_manager = get_data_manager(CacheBase("oceanbase", table_suffix=self.table_suffix),
-        #                                 VectorBase("milvus", iat_dimension=image_dimension + text_dimension,
-        #                                            i_dimension=image_dimension, t_dimension=text_dimension,
-        #                                            table_suffix=self.table_suffix))
 
-        data_manager = get_data_manager(CacheBase("oceanbase", table_suffix=self.table_suffix),
-                                        VectorBase("redis", iat_dimension=image_dimension+text_dimension,
+        mysql_config = configparser.ConfigParser()
+        mysql_config.read('modelcache/config/mysql_config.ini')
+
+        # milvus_config = configparser.ConfigParser()
+        # milvus_config.read('modelcache/config/milvus_config.ini')
+
+        redis_config = configparser.ConfigParser()
+        redis_config.read('modelcache/config/redis_config.ini')
+
+        data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),
+                                        VectorBase("redis", mm_dimension=image_dimension+text_dimension,
                                                    i_dimension=image_dimension, t_dimension=text_dimension,
-                                                   table_suffix=self.table_suffix))
+                                                   redis_config=redis_config))
         cache.init(
-            # embedding_func=get_cache_embedding_text2vec,
-            # image_embedding_func=timm2vec.to_embeddings,
-            # text_embedding_func=text2vec.to_embeddings,
             embedding_func=get_embedding_multi,
-            embedding_concur_func=get_embedding_multi_concurrent_sin,
+            embedding_concurrent_func=get_embedding_multi_concurrent_sin,
             data_manager=data_manager,
             similarity_evaluation=SearchDistanceEvaluation(),
-            # iat_query_pre_embedding_func=query_multi_splicing,
-            iat_insert_pre_embedding_func=insert_iat_dict,
-            iat_query_pre_embedding_func=query_iat_dict,
-            # insert_pre_embedding_miulti_func=insert_multimodal_splicing,
-            # query_pre_embedding_miulti_func=query_multimodal_splicing,
+            mm_insert_pre_embedding_func=mm_insert_dict,
+            mm_query_pre_embedding_func=mm_query_dict,
         )
-        # cache.set_openai_key()
         self.gptcache_version = datetime.now().strftime("%Y-%m-%d %H:%M")
         self.executor = ThreadPoolExecutor(max_workers=6)
 
     def __call__(self, param):
-        print('gptcache_version: {}'.format(self.gptcache_version))
-        # logging.info('gptcache_version: {}'.format(self.gptcache_version))
+        print('mm_version: {}'.format(self.gptcache_version))
         print('call_time: {}'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-        # logging.info('call_time: {}'.format(datetime.now().strftime("%Y-%m-%d %H:%M")))
         try:
-            # print('param: {}'.format(param))
             param_dict = json.loads(param)
         except Exception as e:
             result = {"errorCode": 101, "errorDesc": str(e), "cacheHit": False, "delta_time": 0, "hit_query": '',
@@ -128,10 +119,8 @@ class UserBackend:
         except Exception as e:
             result = {"errorCode": 103, "errorDesc": str(e), "cacheHit": False, "delta_time": 0, "hit_query": '',
                       "answer": ''}
-            # cache.data_manager.save_query_resp(result, model='', query='', delta_time=0)
             return json.dumps(result)
 
-        # --------分割线
         if request_type == 'iat_query':
             if UUID:
                 try:
@@ -143,7 +132,7 @@ class UserBackend:
                     print('uuid_e: {}'.format(e))
             try:
                 start_time = time.time()
-                response = codegpt.ChatCompletion.create_iat_query(
+                response = adapter.ChatCompletion.create_iat_query(
                     scope={"model": model},
                     query=query,
                 )
@@ -173,12 +162,6 @@ class UserBackend:
             print('result: {}'.format(result))
             return json.dumps(result, ensure_ascii=False)
 
-            # response = codegpt.ChatCompletion.create_iat_query(
-            #     scope={"model": model},
-            #     query=query,
-            # )
-            # print('response_query: {}'.format(response))
-
         if request_type == 'iat_insert':
             if UUID:
                 try:
@@ -191,7 +174,7 @@ class UserBackend:
             try:
                 start_time = time.time()
                 try:
-                    response = codegpt.ChatCompletion.create_iat_insert(
+                    response = adapter.ChatCompletion.create_iat_insert(
                         model=model,
                         chat_info=chat_info,
                     )
@@ -211,19 +194,12 @@ class UserBackend:
                 print('result: {}'.format(result))
                 return json.dumps(result, ensure_ascii=False)
 
-            # response = codegpt.ChatCompletion.create_iat_insert(
-            #     model=model,
-            #     chat_info=chat_info,
-            #     milvus_collection_ins=collection_ins
-            # )
-            # print('response: {}'.format(response))
-
         if request_type == 'iat_remove':
             remove_type = param_dict.get("remove_type")
             id_list = param_dict.get("id_list", [])
             print('remove_type: {}'.format(remove_type))
 
-            response = codegpt.ChatCompletion.create_iat_remove(
+            response = adapter.ChatCompletion.create_iat_remove(
                 model=model,
                 remove_type=remove_type,
                 id_list=id_list
@@ -243,10 +219,9 @@ class UserBackend:
 
         if request_type == 'iat_register':
             iat_type = param_dict.get("iat_type")
-            response = codegpt.ChatCompletion.create_iat_register(
+            response = adapter.ChatCompletion.create_register(
                 model=model,
-                iat_type=iat_type,
-                table_suffix=self.table_suffix
+                iat_type=iat_type
                 )
             if response in ['create_success', 'already_exists']:
                 result = {"errorCode": 0, "errorDesc": "", "response": response, "writeStatus": "success"}
@@ -286,15 +261,15 @@ if __name__ == '__main__':
     # r1 = json.dumps(data_dict)
 
     # ============02
-    request_type = 'iat_query'
-    UUID = str(uuid.uuid1()) + "==>" + str(time.time())
-    scope = {"model": "test_0313"}
-    img_data = 'http://resarch.oss-cn-hangzhou-zmf.aliyuncs.com/transFile%2Ftmp%2FLMM_test_image_coco%2FCOCO_train2014_000000332345.jpg'
-    query = {'text': ['父母带着孩子来这个地方可能会有什么顾虑'],
-             'imageRaw': '',
-             'imageUrl': img_data,
-             'multiType': 'IMG_TEXT'}
-    r1 = json.dumps({'request_type': request_type, 'scope': scope, 'query': query, 'UUID': UUID})
+    # request_type = 'iat_query'
+    # UUID = str(uuid.uuid1()) + "==>" + str(time.time())
+    # scope = {"model": "test_0313"}
+    # img_data = 'http://resarch.oss-cn-hangzhou-zmf.aliyuncs.com/transFile%2Ftmp%2FLMM_test_image_coco%2FCOCO_train2014_000000332345.jpg'
+    # query = {'text': ['父母带着孩子来这个地方可能会有什么顾虑'],
+    #          'imageRaw': '',
+    #          'imageUrl': img_data,
+    #          'multiType': 'IMG_TEXT'}
+    # r1 = json.dumps({'request_type': request_type, 'scope': scope, 'query': query, 'UUID': UUID})
 
     # ============03
     # request_type = 'iat_remove'
@@ -304,10 +279,10 @@ if __name__ == '__main__':
     # r1 = json.dumps({'request_type': request_type, 'scope': scope, 'remove_type': remove_type})
 
     # ============04
-    # request_type = 'iat_register'
-    # scope = {"model": "test_0313"}
-    # iat_type = 'IMG_TEXT'
-    # r1 = json.dumps({'request_type': request_type, 'scope': scope, 'iat_type': iat_type})
+    request_type = 'iat_register'
+    scope = {"model": "test_0313"}
+    iat_type = 'IMG_TEXT'
+    r1 = json.dumps({'request_type': request_type, 'scope': scope, 'iat_type': iat_type})
 
     user_backend = UserBackend()
     resp = user_backend(r1)

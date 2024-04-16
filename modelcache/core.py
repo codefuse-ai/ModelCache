@@ -17,9 +17,10 @@ class Cache:
     def __init__(self):
         self.has_init = False
         self.cache_enable_func = None
-        self.query_pre_embedding_func = None
-        self.insert_pre_embedding_func = None
+        self.mm_query_pre_embedding_func = None
+        self.mm_insert_pre_embedding_func = None
         self.embedding_func = None
+        self.embedding_concurrent_func = None
         self.data_manager: Optional[DataManager] = None
         self.similarity_evaluation: Optional[SimilarityEvaluation] = None
         self.post_process_messages_func = None
@@ -30,9 +31,10 @@ class Cache:
     def init(
             self,
             cache_enable_func=cache_all,
-            query_pre_embedding_func=None,
-            insert_pre_embedding_func=None,
+            mm_query_pre_embedding_func=None,
+            mm_insert_pre_embedding_func=None,
             embedding_func=string_embedding,
+            embedding_concurrent_func=string_embedding,
             data_manager: DataManager = get_data_manager(),
             similarity_evaluation=ExactMatchEvaluation(),
             post_process_messages_func=first,
@@ -41,9 +43,10 @@ class Cache:
     ):
         self.has_init = True
         self.cache_enable_func = cache_enable_func
-        self.query_pre_embedding_func = query_pre_embedding_func
-        self.insert_pre_embedding_func = insert_pre_embedding_func
+        self.mm_query_pre_embedding_func = mm_query_pre_embedding_func
+        self.mm_insert_pre_embedding_func = mm_insert_pre_embedding_func
         self.embedding_func = embedding_func
+        self.embedding_concurrent_func = embedding_concurrent_func
         self.data_manager: DataManager = data_manager
         self.similarity_evaluation = similarity_evaluation
         self.post_process_messages_func = post_process_messages_func
