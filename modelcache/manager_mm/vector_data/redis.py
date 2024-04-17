@@ -89,19 +89,29 @@ class RedisVectorStore(VectorBase):
             )
             return 'create_success'
 
-    def mul_add(self, datas: List[VectorData], model=None, mm_type=None):
+    def add(self, datas: List[VectorData], model=None, mm_type=None):
+        # pipe = self._client.pipeline()
         for data in datas:
             id: int = data.id
             embedding = data.data.astype(np.float32).tobytes()
-
-            # collection_name = get_mm_index_name(model, mm_type)
+            # obj = {
+            #     "vector": data.data.astype(np.float32).tobytes(),
+            # }
+            # collection_name = self.collection_prefix + '_' + model + '_' + self.table_suffix
+            # collection_name = get_collection_iat_name(model, iat_type, self.table_suffix)
             index_prefix = get_mm_index_prefix(model, mm_type)
+            # print('collection_name: {}'.format(collection_name))
 
+            # id_field_name = collection_name + '_' + "id"
+            # embedding_field_name = collection_name + '_' + "vec"
             id_field_name = "data_id"
             embedding_field_name = "data_vector"
 
             obj = {id_field_name: id, embedding_field_name: embedding}
+            # print('obj: {}'.format(obj))
             self._client.hset(f"{index_prefix}{id}", mapping=obj)
+        # pipe.hset(f"{self.doc_prefix}{key}", mapping=obj)
+        # pipe.execute()
 
     def search(self, data: np.ndarray, top_k: int = -1, model=None, mm_type=None):
         index_name = get_mm_index_name(model, mm_type)

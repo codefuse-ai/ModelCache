@@ -221,7 +221,7 @@ class SSDataManager(DataManager):
             cache_datas.append([ans, text, image_url, image_id, model])
 
         # ids = self.s.batch_multimodal_insert(cache_datas)
-        ids = self.s.batch_iat_insert(cache_datas)
+        ids = self.s.batch_insert(cache_datas)
         # self.v.multimodal_add(
         self.v.iat_add(
             [
