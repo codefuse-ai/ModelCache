@@ -36,25 +36,24 @@ class SQLStorage(CacheStorage):
 
     def _insert(self, data: List):
         answer = data[0]
-        question = data[1]
-        embedding_data = data[2]
-        model = data[3]
+        text = data[1]
+        image_url = data[2]
+        image_id = data[3]
+        model = data[4]
         answer_type = 0
-        embedding_data = embedding_data.tobytes()
 
-        table_name = "cache_codegpt_answer"
-        insert_sql = "INSERT INTO {} (question, answer, answer_type, model, embedding_data) VALUES (%s, %s, %s, %s, _binary%s)".format(table_name)
-
+        table_name = "multimodal_answer"
+        insert_sql = "INSERT INTO {} (question_text, image_url, image_id, answer, answer_type, model) VALUES (%s, %s, %s, %s, %s, %s)".format(table_name)
         conn = self.pool.connection()
         try:
             with conn.cursor() as cursor:
-                # 执行插入数据操作
-                values = (question, answer, answer_type, model, embedding_data)
+                # data insert operation
+                values = (text, image_url, image_id, answer, answer_type, model)
                 cursor.execute(insert_sql, values)
                 conn.commit()
                 id = cursor.lastrowid
         finally:
-            # 关闭连接，将连接返回给连接池
+            # Close the connection and return it back to the connection pool
             conn.close()
         return id
 

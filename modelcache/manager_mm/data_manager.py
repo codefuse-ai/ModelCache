@@ -25,8 +25,12 @@ from modelcache.utils.log import modelcache_log
 class DataManager(metaclass=ABCMeta):
     """DataManager manage the cache data, including save and search"""
 
+    # @abstractmethod
+    # def save(self, question, answer, embedding_data, **kwargs):
+    #     pass
+
     @abstractmethod
-    def save(self, question, answer, embedding_data, **kwargs):
+    def save(self, text, image_url, image_id,  answer, embedding, **kwargs):
         pass
 
     @abstractmethod
@@ -34,9 +38,8 @@ class DataManager(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def import_data(
-        self, questions: List[Any], answers: List[Any], embedding_datas: List[Any], model:Any
-    ):
+    def import_data(self, texts: List[Any], image_urls: List[Any], image_ids: List[Any], answers: List[Answer],
+                    embeddings: List[Any], model: Any, iat_type: Any):
         pass
 
     @abstractmethod
@@ -89,21 +92,20 @@ class MapDataManager(DataManager):
                 f"You don't have permission to access this file <{self.data_path}>."
             )
 
-    def save(self, question, answer, embedding_data, **kwargs):
-        if isinstance(question, Question):
-            question = question.content
-        self.data[embedding_data] = (question, answer, embedding_data)
+    # def save(self, question, answer, embedding_data, **kwargs):
+    #     if isinstance(question, Question):
+    #         question = question.content
+    #     self.data[embedding_data] = (question, answer, embedding_data)
+
+    def save(self, text, image_url, image_id,  answer, embedding, **kwargs):
+        pass
 
     def save_query_resp(self, query_resp_dict, **kwargs):
         pass
 
-    def import_data(
-        self, questions: List[Any], answers: List[Any], embedding_datas: List[Any], model: Any
-    ):
-        if len(questions) != len(answers) or len(questions) != len(embedding_datas):
-            raise ParamError("Make sure that all parameters have the same length")
-        for i, embedding_data in enumerate(embedding_datas):
-            self.data[embedding_data] = (questions[i], answers[i], embedding_datas[i])
+    def import_data(self, texts: List[Any], image_urls: List[Any], image_ids: List[Any], answers: List[Answer],
+                    embeddings: List[Any], model: Any, iat_type: Any):
+        pass
 
     def get_scalar_data(self, res_data, **kwargs) -> CacheData:
         return CacheData(question=res_data[0], answers=res_data[1])
@@ -158,9 +160,15 @@ class SSDataManager(DataManager):
         self.v = v
         self.o = o
 
-    def save(self, question, answer, embedding_data, **kwargs):
+    # def save(self, question, answer, embedding_data, **kwargs):
+    #     model = kwargs.pop("model", None)
+    #     self.import_data([question], [answer], [embedding_data], model)
+
+    def save(self, text, image_url, image_id,  answer, embedding, **kwargs):
         model = kwargs.pop("model", None)
-        self.import_data([question], [answer], [embedding_data], model)
+        mm_type = kwargs.pop("mm_type", None)
+        self.import_data([text], [image_url], [image_id], [answer],
+                             [embedding], model, mm_type)
 
     def save_query_resp(self, query_resp_dict, **kwargs):
         save_query_start_time = time.time()
@@ -190,36 +198,38 @@ class SSDataManager(DataManager):
 
         return Question(question)
 
-    def import_data(
-        self, questions: List[Any], answers: List[Answer], embedding_datas: List[Any], model: Any
-    ):
-        if len(questions) != len(answers) or len(questions) != len(embedding_datas):
+    def import_data(self, texts: List[Any], image_urls: List[Any], image_ids: List[Any], answers: List[Answer],
+                    embeddings: List[Any], model: Any, iat_type: Any):
+        if len(texts) != len(answers):
             raise ParamError("Make sure that all parameters have the same length")
         cache_datas = []
 
-        embedding_datas = [
-            normalize(embedding_data) for embedding_data in embedding_datas
+        embeddings = [
+            normalize(text_embedding) for text_embedding in embeddings
         ]
 
-        for i, embedding_data in enumerate(embedding_datas):
+        # print('embedding_datas: {}'.format(embedding_datas))
+        for i, embedding in enumerate(embeddings):
             if self.o is not None:
                 ans = self._process_answer_data(answers[i])
             else:
                 ans = answers[i]
+            text = texts[i]
+            image_url = image_urls[i]
+            image_id = image_ids[i]
+            # iat_embedding = embedding.astype("float32")
+            cache_datas.append([ans, text, image_url, image_id, model])
 
-            question = questions[i]
-            embedding_data = embedding_data.astype("float32")
-            cache_datas.append([ans, question, embedding_data, model])
-
-        ids = self.s.batch_insert(cache_datas)
-        logging.info('ids: {}'.format(ids))
-        self.v.mul_add(
+        # ids = self.s.batch_multimodal_insert(cache_datas)
+        ids = self.s.batch_iat_insert(cache_datas)
+        # self.v.multimodal_add(
+        self.v.iat_add(
             [
-                VectorData(id=ids[i], data=embedding_data)
-                for i, embedding_data in enumerate(embedding_datas)
+                VectorData(id=ids[i], data=embedding)
+                for i, embedding in enumerate(embeddings)
             ],
-            model
-
+            model,
+            iat_type
         )
 
     def get_scalar_data(self, res_data, **kwargs) -> Optional[CacheData]:
@@ -256,8 +266,8 @@ class SSDataManager(DataManager):
         return {'status': 'success', 'milvus': 'delete_count: '+str(v_delete_count),
                 'mysql': 'delete_count: '+str(s_delete_count)}
 
-    def create_index(self, model, **kwargs):
-        return self.v.create(model)
+    def create_index(self, model, mm_type, **kwargs):
+        return self.v.create(model, mm_type)
 
     def truncate(self, model_name):
         # drop vector base data

@@ -6,11 +6,11 @@ from redis.commands.search.query import Query
 from redis.commands.search.field import TagField, VectorField, NumericField
 from redis.client import Redis
 
-from modelcache.manager.vector_data.base import VectorBase, VectorData
+from modelcache.manager_mm.vector_data.base import VectorBase, VectorData
 from modelcache.utils import import_redis
 from modelcache.utils.log import modelcache_log
-from modelcache.utils.index_util import get_index_name
-from modelcache.utils.index_util import get_index_prefix
+from modelcache.utils.index_util import get_mm_index_name
+from modelcache.utils.index_util import get_mm_index_prefix
 import_redis()
 
 
@@ -94,18 +94,17 @@ class RedisVectorStore(VectorBase):
             id: int = data.id
             embedding = data.data.astype(np.float32).tobytes()
 
-            collection_name = get_collection_iat_name(model, mm_type)
-            index_prefix = get_collection_iat_prefix(model, mm_type)
+            # collection_name = get_mm_index_name(model, mm_type)
+            index_prefix = get_mm_index_prefix(model, mm_type)
 
             id_field_name = "data_id"
             embedding_field_name = "data_vector"
 
             obj = {id_field_name: id, embedding_field_name: embedding}
-            index_prefix = get_index_prefix(model)
             self._client.hset(f"{index_prefix}{id}", mapping=obj)
 
-    def search(self, data: np.ndarray, top_k: int = -1, model=None):
-        index_name = get_index_name(model)
+    def search(self, data: np.ndarray, top_k: int = -1, model=None, mm_type=None):
+        index_name = get_mm_index_name(model, mm_type)
         id_field_name = "data_id"
         embedding_field_name = "data_vector"
 
@@ -116,7 +115,6 @@ class RedisVectorStore(VectorBase):
             .return_fields(id_field_name, "distance")
             .dialect(2)
         )
-
         query_params = {"vector": data.astype(np.float32).tobytes()}
         results = (
             self._client.ft(index_name)
@@ -128,19 +126,20 @@ class RedisVectorStore(VectorBase):
     def rebuild(self, ids=None) -> bool:
         pass
 
-    def rebuild_col(self, model):
-        index_name_model = get_index_name(model)
-        if self._check_index_exists(index_name_model):
+    def rebuild_idx(self, model, mm_type=None):
+        for mm_type in ['IMG_TEXT', 'TEXT']:
+            index_name = get_mm_index_name(model, mm_type)
+            print('remove index_name: {}'.format(index_name))
+            if self._check_index_exists(index_name):
+                try:
+                    self._client.ft(index_name).dropindex(delete_documents=True)
+                except Exception as e:
+                    raise ValueError(str(e))
             try:
-                self._client.ft(index_name_model).dropindex(delete_documents=True)
+                index_prefix = get_mm_index_prefix(model, mm_type)
+                self.create_index(index_name, mm_type, index_prefix)
             except Exception as e:
                 raise ValueError(str(e))
-        try:
-            index_prefix = get_index_prefix(model)
-            self.create_index(index_name_model, index_prefix)
-        except Exception as e:
-            raise ValueError(str(e))
-        # return 'rebuild success'
 
     def delete(self, ids) -> None:
         pipe = self._client.pipeline()
@@ -148,10 +147,10 @@ class RedisVectorStore(VectorBase):
             pipe.delete(f"{self.doc_prefix}{data_id}")
         pipe.execute()
 
-    def create(self, model=None):
-        index_name = get_index_name(model)
-        index_prefix = get_index_prefix(model)
-        return self.create_index(index_name, index_prefix)
+    def create(self, model=None, mm_type=None):
+        index_name = get_mm_index_name(model, mm_type)
+        index_prefix = get_mm_index_prefix(model, mm_type)
+        return self.create_index(index_name, mm_type, index_prefix)
 
     def get_index_by_name(self, index_name):
         pass

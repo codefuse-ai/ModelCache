@@ -177,7 +177,6 @@ def user_backend():
         return json.dumps(result)
 
     if request_type == 'register':
-        # iat_type = param_dict.get("iat_type")
         response = adapter.ChatCompletion.create_register(
             model=model
         )

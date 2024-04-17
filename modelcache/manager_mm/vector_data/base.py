@@ -31,7 +31,7 @@ class VectorBase(ABC):
         pass
 
     @abstractmethod
-    def rebuild_col(self, model):
+    def rebuild_idx(self, model):
         pass
 
     def flush(self):

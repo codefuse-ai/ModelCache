@@ -15,6 +15,7 @@ from datetime import datetime
 from typing import Dict
 import time
 import json
+import uuid
 import configparser
 from modelcache import cache
 # from modelcache.adapter import adapter
@@ -107,16 +108,16 @@ class UserBackend:
                 model = model.replace('.', '_')
                 print('model: {}'.format(model))
 
-            if request_type in ['iat_query', 'iat_insert']:
-                if request_type == 'iat_query':
+            if request_type in ['mm_query', 'mm_insert']:
+                if request_type == 'mm_query':
                     query = param_dict.get("query")
-                elif request_type == 'iat_insert':
+                elif request_type == 'mm_insert':
                     chat_info = param_dict.get("chat_info")
                     query = chat_info[-1]['query']
 
-            if request_type is None or request_type not in ['iat_query', 'iat_remove', 'iat_insert', 'iat_register']:
+            if request_type is None or request_type not in ['mm_query', 'mm_remove', 'mm_insert', 'mm_register']:
                 result = {"errorCode": 102,
-                          "errorDesc": "type exception, should one of ['iat_query', 'iat_insert', 'iat_remove', 'iat_register']",
+                          "errorDesc": "type exception, should one of ['mm_query', 'mm_insert', 'mm_remove', 'mm_register']",
                           "cacheHit": False, "delta_time": 0, "hit_query": '', "answer": ''}
                 cache.data_manager.save_query_resp(result, model=model, query='', delta_time=0)
                 return json.dumps(result)
@@ -125,7 +126,7 @@ class UserBackend:
                       "answer": ''}
             return json.dumps(result)
 
-        if request_type == 'iat_query':
+        if request_type == 'mm_query':
             if UUID:
                 try:
                     uuid_list = UUID.split('==>')
@@ -136,7 +137,7 @@ class UserBackend:
                     print('uuid_e: {}'.format(e))
             try:
                 start_time = time.time()
-                response = adapter.ChatCompletion.create_iat_query(
+                response = adapter.ChatCompletion.create_mm_query(
                     scope={"model": model},
                     query=query,
                 )
@@ -166,7 +167,7 @@ class UserBackend:
             print('result: {}'.format(result))
             return json.dumps(result, ensure_ascii=False)
 
-        if request_type == 'iat_insert':
+        if request_type == 'mm_insert':
             if UUID:
                 try:
                     uuid_list = UUID.split('==>')
@@ -178,13 +179,14 @@ class UserBackend:
             try:
                 start_time = time.time()
                 try:
-                    response = adapter.ChatCompletion.create_iat_insert(
+                    response = adapter.ChatCompletion.create_mm_insert(
                         model=model,
                         chat_info=chat_info,
                     )
                 except Exception as e:
-                    result = {"errorCode": 303, "errorDesc": e, "writeStatus": "exception"}
-                    return json.dumps(result, ensure_ascii=False)
+                    # result = {"errorCode": 303, "errorDesc": str(e), "writeStatus": "exception"}
+                    # return json.dumps(result, ensure_ascii=False)
+                    raise e
 
                 if response == 'success':
                     result = {"errorCode": 0, "errorDesc": "", "writeStatus": "success"}
@@ -194,16 +196,17 @@ class UserBackend:
                 print('insert_time: {}'.format(insert_time))
                 return json.dumps(result, ensure_ascii=False)
             except Exception as e:
-                result = {"errorCode": 304, "errorDesc": e, "writeStatus": "exception"}
-                print('result: {}'.format(result))
-                return json.dumps(result, ensure_ascii=False)
+                # result = {"errorCode": 304, "errorDesc": str(e), "writeStatus": "exception"}
+                # print('result: {}'.format(result))
+                # return json.dumps(result, ensure_ascii=False)
+                raise e
 
-        if request_type == 'iat_remove':
+        if request_type == 'mm_remove':
             remove_type = param_dict.get("remove_type")
             id_list = param_dict.get("id_list", [])
             print('remove_type: {}'.format(remove_type))
 
-            response = adapter.ChatCompletion.create_iat_remove(
+            response = adapter.ChatCompletion.create_mm_remove(
                 model=model,
                 remove_type=remove_type,
                 id_list=id_list
@@ -221,11 +224,11 @@ class UserBackend:
                 result = {"errorCode": 402, "errorDesc": "", "response": response, "writeStatus": "exception"}
             return json.dumps(result)
 
-        if request_type == 'iat_register':
-            iat_type = param_dict.get("iat_type")
-            response = adapter.ChatCompletion.create_register(
+        if request_type == 'mm_register':
+            mm_type = param_dict.get("mm_type")
+            response = adapter.ChatCompletion.create_mm_register(
                 model=model,
-                iat_type=iat_type
+                mm_type=mm_type
                 )
             if response in ['create_success', 'already_exists']:
                 result = {"errorCode": 0, "errorDesc": "", "response": response, "writeStatus": "success"}
@@ -249,23 +252,23 @@ class UserBackend:
 
 if __name__ == '__main__':
     # ============01
-    # request_type = 'iat_insert'
-    # scope = {"model": "test_0313"}
-    # # UUID = "820b0052-d9d8-11ee-95f1-52775e3e6fd1" + "==>" + str(time.time())
-    # UUID = str(uuid.uuid1()) + "==>" + str(time.time())
-    # print('UUID: {}'.format(UUID))
-    # img_data = "http://resarch.oss-cn-hangzhou-zmf.aliyuncs.com/transFile%2Ftmp%2FLMM_test_image_coco%2FCOCO_train2014_000000332345.jpg"
-    # query = {'text': ['父母带着孩子来这个地方可能会有什么顾虑'],
-    #          'imageRaw': '',
-    #          'imageUrl': img_data,
-    #          'imageId': 'ccc'}
-    # answer = "应该注意小孩不要跑到铁轨上"
-    # chat_info = [{"query": query, "answer": answer}]
-    # data_dict = {'request_type': request_type, 'scope': scope, 'chat_info': chat_info, 'UUID': UUID}
-    # r1 = json.dumps(data_dict)
+    request_type = 'mm_insert'
+    scope = {"model": "test_0313"}
+    # UUID = "820b0052-d9d8-11ee-95f1-52775e3e6fd1" + "==>" + str(time.time())
+    UUID = str(uuid.uuid1()) + "==>" + str(time.time())
+    print('UUID: {}'.format(UUID))
+    img_data = "http://resarch.oss-cn-hangzhou-zmf.aliyuncs.com/transFile%2Ftmp%2FLMM_test_image_coco%2FCOCO_train2014_000000332345.jpg"
+    query = {'text': ['父母带着孩子来这个地方可能会有什么顾虑'],
+             'imageRaw': '',
+             'imageUrl': img_data,
+             'imageId': 'ccc'}
+    answer = "应该注意小孩不要跑到铁轨上"
+    chat_info = [{"query": query, "answer": answer}]
+    data_dict = {'request_type': request_type, 'scope': scope, 'chat_info': chat_info, 'UUID': UUID}
+    r1 = json.dumps(data_dict)
 
     # ============02
-    # request_type = 'iat_query'
+    # request_type = 'mm_query'
     # UUID = str(uuid.uuid1()) + "==>" + str(time.time())
     # scope = {"model": "test_0313"}
     # img_data = 'http://resarch.oss-cn-hangzhou-zmf.aliyuncs.com/transFile%2Ftmp%2FLMM_test_image_coco%2FCOCO_train2014_000000332345.jpg'
@@ -276,17 +279,17 @@ if __name__ == '__main__':
     # r1 = json.dumps({'request_type': request_type, 'scope': scope, 'query': query, 'UUID': UUID})
 
     # ============03
-    # request_type = 'iat_remove'
+    # request_type = 'mm_remove'
     # scope = {"model": "test_0313"}
-    # # iat_type = 'IMG_TEXT'
+    # # mm_type = 'IMG_TEXT'
     # remove_type = 'truncate_by_model'
     # r1 = json.dumps({'request_type': request_type, 'scope': scope, 'remove_type': remove_type})
 
     # ============04
-    request_type = 'iat_register'
-    scope = {"model": "test_0313"}
-    iat_type = 'IMG_TEXT'
-    r1 = json.dumps({'request_type': request_type, 'scope': scope, 'iat_type': iat_type})
+    # request_type = 'mm_register'
+    # scope = {"model": "test_0313"}
+    # mm_type = 'IMG_TEXT'
+    # r1 = json.dumps({'request_type': request_type, 'scope': scope, 'mm_type': mm_type})
 
     user_backend = UserBackend()
     resp = user_backend(r1)

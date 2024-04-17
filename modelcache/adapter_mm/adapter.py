@@ -3,8 +3,8 @@ import logging
 
 from modelcache.adapter_mm.adapter_query import adapt_query
 from modelcache.adapter_mm.adapter_insert import adapt_insert
-from modelcache.adapter.adapter_remove import adapt_remove
-from modelcache.adapter.adapter_register import adapt_register
+from modelcache.adapter_mm.adapter_remove import adapt_remove
+from modelcache.adapter_mm.adapter_register import adapt_register
 
 
 class ChatCompletion(object):
@@ -30,7 +30,8 @@ class ChatCompletion(object):
                 **kwargs
             )
         except Exception as e:
-            return str(e)
+            # return str(e)
+            raise e
 
     @classmethod
     def create_mm_remove(cls, *args, **kwargs):
@@ -51,7 +52,7 @@ class ChatCompletion(object):
                 **kwargs
             )
         except Exception as e:
-            return str(e)
+            raise e
 
 
 def construct_resp_from_cache(return_message, return_query):

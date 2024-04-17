@@ -9,25 +9,26 @@ def get_index_prefix(model):
     return 'prefix' + '_' + model
 
 
-def get_mm_index_name(model, iat_type):
-    if iat_type not in ['IMG_TEXT', 'iat', 'IMG', 'image', 'TEXT', 'text']:
-        raise ValueError('iat_type is not normal!')
-    if iat_type == 'IMG_TEXT':
-        iat_type = 'iat'
-    elif iat_type == 'IMG':
-        iat_type = 'image'
-    elif iat_type == 'TEXT':
-        iat_type = 'text'
-    return 'multicache' + '_' + model + '_' + iat_type
+def get_mm_index_name(model, mm_type):
+    print('mm_type: {}'.format(mm_type))
+    if mm_type not in ['IMG_TEXT', 'mm', 'IMG', 'image', 'TEXT', 'text']:
+        raise ValueError('mm_type is not normal!')
+    if mm_type == 'IMG_TEXT':
+        mm_type = 'mm'
+    elif mm_type == 'IMG':
+        mm_type = 'image'
+    elif mm_type == 'TEXT':
+        mm_type = 'text'
+    return 'multicache' + '_' + model + '_' + mm_type
 
 
-def get_collection_iat_prefix(model, iat_type, table_suffix):
-    if iat_type not in ['IMG_TEXT', 'iat', 'IMG', 'image', 'TEXT', 'text']:
+def get_mm_index_prefix(model, mm_type):
+    if mm_type not in ['IMG_TEXT', 'mm', 'IMG', 'image', 'TEXT', 'text']:
         raise ValueError('iat_type is not normal!')
-    if iat_type == 'IMG_TEXT':
-        iat_type = 'iat'
-    elif iat_type == 'IMG':
-        iat_type = 'image'
-    elif iat_type == 'TEXT':
-        iat_type = 'text'
-    return 'prefix' + '_' + model + '_' + iat_type + '_' + table_suffix
+    if mm_type == 'IMG_TEXT':
+        mm_type = 'mm'
+    elif mm_type == 'IMG':
+        mm_type = 'image'
+    elif mm_type == 'TEXT':
+        mm_type = 'text'
+    return 'prefix' + '_' + model + '_' + mm_type
