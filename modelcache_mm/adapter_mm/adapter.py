@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from modelcache.adapter_mm.adapter_query import adapt_query
-from modelcache.adapter_mm.adapter_insert import adapt_insert
-from modelcache.adapter_mm.adapter_remove import adapt_remove
-from modelcache.adapter_mm.adapter_register import adapt_register
+from modelcache_mm.adapter_mm.adapter_query import adapt_query
+from modelcache_mm.adapter_mm.adapter_insert import adapt_insert
+from modelcache_mm.adapter_mm.adapter_remove import adapt_remove
+from modelcache_mm.adapter_mm.adapter_register import adapt_register
 
 
 class ChatCompletion(object):

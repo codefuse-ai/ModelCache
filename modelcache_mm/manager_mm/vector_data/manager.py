@@ -69,7 +69,7 @@ class VectorBase:
                 local_data=local_data
             )
         elif name == "redis":
-            from modelcache.manager_mm.vector_data.redis import RedisVectorStore
+            from modelcache_mm.manager_mm.vector_data.redis import RedisVectorStore
             redis_config = kwargs.get("redis_config")
 
             mm_dimension = kwargs.get("mm_dimension", DIMENSION)

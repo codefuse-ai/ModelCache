@@ -19,9 +19,9 @@ import uuid
 import configparser
 from modelcache import cache
 # from modelcache.adapter import adapter
-from modelcache.adapter_mm import adapter
+from modelcache_mm.adapter_mm import adapter
 # from modelcache.manager import CacheBase, VectorBase, get_data_manager
-from modelcache.manager_mm import CacheBase, VectorBase, get_data_manager
+from modelcache_mm.manager_mm import CacheBase, VectorBase, get_data_manager
 from modelcache.similarity_evaluation.distance import SearchDistanceEvaluation
 from modelcache.processor.pre import mm_insert_dict
 from modelcache.processor.pre import mm_query_dict

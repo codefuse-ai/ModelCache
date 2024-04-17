@@ -3,10 +3,10 @@ from typing import List
 import numpy as np
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 from redis.commands.search.query import Query
-from redis.commands.search.field import TagField, VectorField, NumericField
+from redis.commands.search.field import VectorField, NumericField
 from redis.client import Redis
 
-from modelcache.manager_mm.vector_data.base import VectorBase, VectorData
+from modelcache_mm.manager_mm.vector_data.base import VectorBase, VectorData
 from modelcache.utils import import_redis
 from modelcache.utils.log import modelcache_log
 from modelcache.utils.index_util import get_mm_index_name
@@ -90,28 +90,14 @@ class RedisVectorStore(VectorBase):
             return 'create_success'
 
     def add(self, datas: List[VectorData], model=None, mm_type=None):
-        # pipe = self._client.pipeline()
         for data in datas:
             id: int = data.id
             embedding = data.data.astype(np.float32).tobytes()
-            # obj = {
-            #     "vector": data.data.astype(np.float32).tobytes(),
-            # }
-            # collection_name = self.collection_prefix + '_' + model + '_' + self.table_suffix
-            # collection_name = get_collection_iat_name(model, iat_type, self.table_suffix)
             index_prefix = get_mm_index_prefix(model, mm_type)
-            # print('collection_name: {}'.format(collection_name))
-
-            # id_field_name = collection_name + '_' + "id"
-            # embedding_field_name = collection_name + '_' + "vec"
             id_field_name = "data_id"
             embedding_field_name = "data_vector"
-
             obj = {id_field_name: id, embedding_field_name: embedding}
-            # print('obj: {}'.format(obj))
             self._client.hset(f"{index_prefix}{id}", mapping=obj)
-        # pipe.hset(f"{self.doc_prefix}{key}", mapping=obj)
-        # pipe.execute()
 
     def search(self, data: np.ndarray, top_k: int = -1, model=None, mm_type=None):
         index_name = get_mm_index_name(model, mm_type)

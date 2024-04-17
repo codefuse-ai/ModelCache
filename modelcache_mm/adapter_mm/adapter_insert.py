@@ -66,6 +66,9 @@ def adapt_insert(*args, **kwargs):
         image_embeddings = embedding_data_resp['image_embedding']
         text_embeddings = embedding_data_resp['text_embeddings']
 
+        print('image_embeddings: {}'.format(image_embeddings))
+        print('text_embeddings: {}'.format(text_embeddings))
+
         if len(image_embeddings) > 0 and len(image_embeddings) > 0:
             image_embedding = np.array(image_embeddings[0])
             text_embedding = text_embeddings[0]
@@ -82,6 +85,7 @@ def adapt_insert(*args, **kwargs):
         else:
             raise ValueError('maya embedding service return both empty list, please check!')
 
+    print('embedding_data: {}'.format(embedding_data))
     chat_cache.data_manager.save(
         pre_embedding_text,
         pre_embedding_image_url,

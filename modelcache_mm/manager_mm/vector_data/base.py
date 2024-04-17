@@ -15,7 +15,7 @@ class VectorBase(ABC):
     """VectorBase: base vector store interface"""
 
     @abstractmethod
-    def mul_add(self, datas: List[VectorData], model=None):
+    def add(self, datas: List[VectorData], model=None):
         pass
 
     @abstractmethod

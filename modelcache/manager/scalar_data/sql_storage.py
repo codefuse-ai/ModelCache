@@ -40,6 +40,7 @@ class SQLStorage(CacheStorage):
         embedding_data = data[2]
         model = data[3]
         answer_type = 0
+        print('embedding_data: {}'.format(embedding_data))
         embedding_data = embedding_data.tobytes()
 
         table_name = "cache_codegpt_answer"
@@ -61,6 +62,7 @@ class SQLStorage(CacheStorage):
     def batch_insert(self, all_data: List[CacheData]):
         ids = []
         for data in all_data:
+            print('data: {}'.format(data))
             ids.append(self._insert(data))
         return ids
 

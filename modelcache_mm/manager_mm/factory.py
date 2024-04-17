@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from typing import Union, Callable
-from modelcache.manager_mm import CacheBase, VectorBase, ObjectBase
-from modelcache.manager_mm.data_manager import SSDataManager, MapDataManager
+from modelcache_mm.manager_mm import CacheBase, VectorBase, ObjectBase
+from modelcache_mm.manager_mm.data_manager import SSDataManager, MapDataManager
 
 
 def get_data_manager(

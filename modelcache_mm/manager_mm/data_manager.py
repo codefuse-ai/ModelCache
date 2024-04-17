@@ -220,10 +220,8 @@ class SSDataManager(DataManager):
             # iat_embedding = embedding.astype("float32")
             cache_datas.append([ans, text, image_url, image_id, model])
 
-        # ids = self.s.batch_multimodal_insert(cache_datas)
         ids = self.s.batch_insert(cache_datas)
-        # self.v.multimodal_add(
-        self.v.iat_add(
+        self.v.add(
             [
                 VectorData(id=ids[i], data=embedding)
                 for i, embedding in enumerate(embeddings)
