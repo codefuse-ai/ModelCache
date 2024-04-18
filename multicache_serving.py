@@ -263,15 +263,15 @@ if __name__ == '__main__':
     # r1 = json.dumps(data_dict)
 
     # ============02
-    # request_type = 'query'
-    # UUID = str(uuid.uuid1()) + "==>" + str(time.time())
-    # scope = {"model": "test_0313"}
-    # img_data = 'http://resarch.oss-cn-hangzhou-zmf.aliyuncs.com/transFile%2Ftmp%2FLMM_test_image_coco%2FCOCO_train2014_000000332345.jpg'
-    # query = {'text': ['父母带着孩子来这个地方可能会有什么顾虑'],
-    #          'imageRaw': '',
-    #          'imageUrl': img_data,
-    #          'multiType': 'IMG_TEXT'}
-    # r1 = json.dumps({'request_type': request_type, 'scope': scope, 'query': query, 'UUID': UUID})
+    request_type = 'query'
+    UUID = str(uuid.uuid1()) + "==>" + str(time.time())
+    scope = {"model": "test_0313"}
+    img_data = 'http://resarch.oss-cn-hangzhou-zmf.aliyuncs.com/transFile%2Ftmp%2FLMM_test_image_coco%2FCOCO_train2014_000000332345.jpg'
+    query = {'text': ['父母带着孩子来这个地方可能会有什么顾虑'],
+             'imageRaw': '',
+             'imageUrl': img_data,
+             'multiType': 'IMG_TEXT'}
+    r1 = json.dumps({'request_type': request_type, 'scope': scope, 'query': query, 'UUID': UUID})
 
     # ============03
     # request_type = 'remove'

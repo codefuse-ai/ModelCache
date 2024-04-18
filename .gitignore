@@ -139,4 +139,4 @@ dmypy.json
 
 *.ini
 
-multicache_serving.py
+**/multicache_serving.py
