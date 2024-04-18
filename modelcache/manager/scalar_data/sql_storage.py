@@ -40,7 +40,6 @@ class SQLStorage(CacheStorage):
         embedding_data = data[2]
         model = data[3]
         answer_type = 0
-        print('embedding_data: {}'.format(embedding_data))
         embedding_data = embedding_data.tobytes()
 
         table_name = "cache_codegpt_answer"

@@ -128,7 +128,6 @@ class RedisVectorStore(VectorBase):
             raise ValueError(str(e))
         return 'success'
 
-
     def rebuild(self, ids=None) -> bool:
         pass
 

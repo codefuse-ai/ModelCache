@@ -274,10 +274,10 @@ if __name__ == '__main__':
     # r1 = json.dumps({'request_type': request_type, 'scope': scope, 'query': query, 'UUID': UUID})
 
     # ============03
-    request_type = 'remove'
-    scope = {"model": "test_0313"}
-    remove_type = 'truncate_by_model'
-    r1 = json.dumps({'request_type': request_type, 'scope': scope, 'remove_type': remove_type})
+    # request_type = 'remove'
+    # scope = {"model": "test_0313"}
+    # remove_type = 'truncate_by_model'
+    # r1 = json.dumps({'request_type': request_type, 'scope': scope, 'remove_type': remove_type})
 
     # ============04
     # request_type = 'register'

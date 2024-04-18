@@ -328,20 +328,38 @@ class SSDataManager(DataManager):
         return self.v.create(model, type)
 
     def truncate(self, model_name):
-        # drop vector base data
+        # # drop vector base data
+        # try:
+        #     vector_resp = self.v.rebuild_col(model_name)
+        # except Exception as e:
+        #     return {'status': 'failed', 'VectorDB': 'truncate VectorDB data failed, please check! e: {}'.format(e),
+        #             'ScalarDB': 'unexecuted'}
+        # if vector_resp:
+        #     return {'status': 'failed', 'VectorDB': vector_resp, 'ScalarDB': 'unexecuted'}
+        # # drop scalar base data
+        # try:
+        #     delete_count = self.s.model_deleted(model_name)
+        # except Exception as e:
+        #     return {'status': 'failed', 'VectorDB': 'rebuild',
+        #             'ScalarDB': 'truncate scalar data failed, please check! e: {}'.format(e)}
+        # return {'status': 'success', 'VectorDB': 'rebuild', 'ScalarDB': 'delete_count: ' + str(delete_count)}
         try:
-            vector_resp = self.v.rebuild_col(model_name)
+            resp = self.v.rebuild_idx(model_name)
         except Exception as e:
-            return {'status': 'failed', 'VectorDB': 'truncate VectorDB data failed, please check! e: {}'.format(e),
+            return {'status': 'failed', 'VectorDB': 'truncate VectorDB failed, please check! e: {}'.format(str(e)),
                     'ScalarDB': 'unexecuted'}
-        if vector_resp:
-            return {'status': 'failed', 'VectorDB': vector_resp, 'ScalarDB': 'unexecuted'}
-        # drop scalar base data
+
+        if resp:
+            print('resp: {}'.format(resp))
+            return {'status': 'failed', 'VectorDB': resp, 'ScalarDB': 'unexecuted'}
+        # drop ocean base model
         try:
             delete_count = self.s.model_deleted(model_name)
         except Exception as e:
+            # return 'truncate milvus data failed, please check!'
             return {'status': 'failed', 'VectorDB': 'rebuild',
-                    'ScalarDB': 'truncate scalar data failed, please check! e: {}'.format(e)}
+                    'ScalarDB': 'truncate scalardb data failed, please check! e: {}'.format(e)}
+
         return {'status': 'success', 'VectorDB': 'rebuild', 'ScalarDB': 'delete_count: ' + str(delete_count)}
 
     def flush(self):

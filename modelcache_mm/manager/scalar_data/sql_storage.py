@@ -101,7 +101,7 @@ class SQLStorage(CacheStorage):
         if isinstance(hit_query, list):
             hit_query = json.dumps(hit_query, ensure_ascii=False)
 
-        table_name = "modelcache_query_log"
+        table_name = "open_cache_mm_query_log"
         insert_sql = "INSERT INTO {} (error_code, error_desc, cache_hit, model, query, delta_time, hit_query, answer) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)".format(table_name)
         conn = self.pool.connection()
         try:
@@ -156,7 +156,7 @@ class SQLStorage(CacheStorage):
             return None
 
     def update_hit_count_by_id(self, primary_id: int):
-        table_name = "cache_codegpt_answer"
+        table_name = "open_cache_mm_answer"
         update_sql = "UPDATE {} SET hit_count = hit_count+1 WHERE id={}".format(table_name, primary_id)
         conn = self.pool.connection()
 
@@ -174,7 +174,7 @@ class SQLStorage(CacheStorage):
         pass
 
     def mark_deleted(self, keys):
-        table_name = "cache_codegpt_answer"
+        table_name = "open_cache_mm_answer"
         delete_sql = "Delete from {} WHERE id in ({})".format(table_name, ",".join([str(i) for i in keys]))
 
         # 从连接池中获取连接
@@ -191,8 +191,10 @@ class SQLStorage(CacheStorage):
         return delete_count
 
     def model_deleted(self, model_name):
-        table_name = "cache_codegpt_answer"
+        table_name = "open_cache_mm_answer"
         delete_sql = "Delete from {} WHERE model='{}'".format(table_name, model_name)
+        # print('delete_sql: {}'.format(delete_sql))
+        # print('delete_sql begin')
         conn = self.pool.connection()
         # 使用连接执行删除数据操作
         try:

@@ -135,7 +135,8 @@ dmypy.json
 /embedding_npy
 /flask_server
 *.bin
-**/modelcache_serving.py
 **/maya_embedding_service
 
 *.ini
+
+multicache_serving.py

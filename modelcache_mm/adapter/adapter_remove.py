@@ -19,7 +19,7 @@ def adapt_remove(*args, **kwargs):
         print('id_list: {}'.format(id_list))
         resp = chat_cache.data_manager.delete(id_list, model=model)
     elif remove_type == 'truncate_by_model':
-        resp = chat_cache.data_manager.truncate_iat(model)
+        resp = chat_cache.data_manager.truncate(model)
     else:
         resp = "remove_type_error"
     return resp
