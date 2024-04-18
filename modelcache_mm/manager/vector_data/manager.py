@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from modelcache.utils.error import NotFoundError, ParamError
+from modelcache_mm.utils.error import NotFoundError, ParamError
 
 TOP_K = 1
 FAISS_INDEX_PATH = "faiss.index"
@@ -69,7 +69,7 @@ class VectorBase:
                 local_data=local_data
             )
         elif name == "redis":
-            from modelcache_mm.manager_mm.vector_data.redis import RedisVectorStore
+            from modelcache_mm.manager.vector_data.redis import RedisVectorStore
             redis_config = kwargs.get("redis_config")
 
             mm_dimension = kwargs.get("mm_dimension", DIMENSION)

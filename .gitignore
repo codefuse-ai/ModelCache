@@ -138,4 +138,4 @@ dmypy.json
 **/modelcache_serving.py
 **/maya_embedding_service
 
-#*.ini
+*.ini

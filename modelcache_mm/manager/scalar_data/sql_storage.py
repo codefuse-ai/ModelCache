@@ -6,7 +6,7 @@ import pymysql
 import json
 import base64
 from typing import List
-from modelcache.manager.scalar_data.base import CacheStorage, CacheData
+from modelcache_mm.manager.scalar_data.base import CacheStorage, CacheData
 from DBUtils.PooledDB import PooledDB
 
 
@@ -34,6 +34,29 @@ class SQLStorage(CacheStorage):
     def create(self):
         pass
 
+    # def _insert(self, data: List):
+    #     answer = data[0]
+    #     text = data[1]
+    #     image_url = data[2]
+    #     image_id = data[3]
+    #     model = data[4]
+    #     answer_type = 0
+    #
+    #     table_name = "multimodal_answer"
+    #     insert_sql = "INSERT INTO {} (question_text, image_url, image_id, answer, answer_type, model) VALUES (%s, %s, %s, %s, %s, %s)".format(table_name)
+    #     conn = self.pool.connection()
+    #     try:
+    #         with conn.cursor() as cursor:
+    #             # data insert operation
+    #             values = (text, image_url, image_id, answer, answer_type, model)
+    #             cursor.execute(insert_sql, values)
+    #             conn.commit()
+    #             id = cursor.lastrowid
+    #     finally:
+    #         # Close the connection and return it back to the connection pool
+    #         conn.close()
+    #     return id
+
     def _insert(self, data: List):
         answer = data[0]
         text = data[1]
@@ -42,19 +65,21 @@ class SQLStorage(CacheStorage):
         model = data[4]
         answer_type = 0
 
-        table_name = "multimodal_answer"
+        table_name = "open_cache_mm_answer"
         insert_sql = "INSERT INTO {} (question_text, image_url, image_id, answer, answer_type, model) VALUES (%s, %s, %s, %s, %s, %s)".format(table_name)
+
         conn = self.pool.connection()
         try:
             with conn.cursor() as cursor:
-                # data insert operation
+                #  insert data operation
                 values = (text, image_url, image_id, answer, answer_type, model)
                 cursor.execute(insert_sql, values)
                 conn.commit()
                 id = cursor.lastrowid
         finally:
-            # Close the connection and return it back to the connection pool
+            # Close the connection and return it to the connection pool.
             conn.close()
+        print('insert retrun id: {}'.format(id))
         return id
 
     def batch_insert(self, all_data: List[CacheData]):
@@ -89,12 +114,31 @@ class SQLStorage(CacheStorage):
             # 关闭连接，将连接返回给连接池
             conn.close()
 
-    def get_data_by_id(self, key: int):
-        table_name = "cache_codegpt_answer"
-        query_sql = "select question, answer, embedding_data, model from {} where id={}".format(table_name, key)
-        conn_start = time.time()
-        conn = self.pool.connection()
+    # def get_data_by_id(self, key: int):
+    #     table_name = "cache_codegpt_answer"
+    #     query_sql = "select question, answer, embedding_data, model from {} where id={}".format(table_name, key)
+    #     conn_start = time.time()
+    #     conn = self.pool.connection()
+    #
+    #     search_start = time.time()
+    #     try:
+    #         with conn.cursor() as cursor:
+    #             # 执行数据库操作
+    #             cursor.execute(query_sql)
+    #             resp = cursor.fetchone()
+    #     finally:
+    #         # 关闭连接，将连接返回给连接池
+    #         conn.close()
+    #
+    #     if resp is not None and len(resp) == 4:
+    #         return resp
+    #     else:
+    #         return None
 
+    def get_data_by_id(self, key: int):
+        table_name = "open_cache_mm_answer"
+        query_sql = "select question_text, image_url, image_id, answer, model from {} where id={}".format(table_name, key)
+        conn = self.pool.connection()
         search_start = time.time()
         try:
             with conn.cursor() as cursor:
@@ -104,8 +148,9 @@ class SQLStorage(CacheStorage):
         finally:
             # 关闭连接，将连接返回给连接池
             conn.close()
+        print('ob_search_cost_time: {}'.format(time.time() - search_start))
 
-        if resp is not None and len(resp) == 4:
+        if resp is not None and len(resp) == 5:
             return resp
         else:
             return None

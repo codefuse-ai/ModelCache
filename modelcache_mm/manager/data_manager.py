@@ -7,27 +7,23 @@ import numpy as np
 import cachetools
 from abc import abstractmethod, ABCMeta
 from typing import List, Any, Optional, Union
-from modelcache.manager.scalar_data.base import (
+from modelcache_mm.manager.scalar_data.base import (
     CacheStorage,
     CacheData,
     DataType,
     Answer,
     Question
 )
-from modelcache.utils.error import CacheError, ParamError
-from modelcache.manager.vector_data.base import VectorBase, VectorData
-from modelcache.manager.object_data.base import ObjectBase
-from modelcache.manager.eviction import EvictionBase
-from modelcache.manager.eviction_manager import EvictionManager
-from modelcache.utils.log import modelcache_log
+from modelcache_mm.utils.error import CacheError, ParamError
+from modelcache_mm.manager.vector_data.base import VectorBase, VectorData
+from modelcache_mm.manager.object_data.base import ObjectBase
+# from modelcache.manager.eviction import EvictionBase
+# from modelcache.manager.eviction_manager import EvictionManager
+from modelcache_mm.utils.log import modelcache_log
 
 
 class DataManager(metaclass=ABCMeta):
     """DataManager manage the cache data, including save and search"""
-
-    # @abstractmethod
-    # def save(self, question, answer, embedding_data, **kwargs):
-    #     pass
 
     @abstractmethod
     def save(self, text, image_url, image_id,  answer, embedding, **kwargs):
@@ -38,8 +34,10 @@ class DataManager(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def import_data(self, texts: List[Any], image_urls: List[Any], image_ids: List[Any], answers: List[Answer],
-                    embeddings: List[Any], model: Any, iat_type: Any):
+    def import_data(
+        self, texts: List[Any], image_urls: List[Any], image_ids: List[Any], answers: List[Answer],
+            embeddings: List[Any], model: Any, iat_type: Any
+    ):
         pass
 
     @abstractmethod
@@ -92,19 +90,23 @@ class MapDataManager(DataManager):
                 f"You don't have permission to access this file <{self.data_path}>."
             )
 
-    # def save(self, question, answer, embedding_data, **kwargs):
-    #     if isinstance(question, Question):
-    #         question = question.content
-    #     self.data[embedding_data] = (question, answer, embedding_data)
-
     def save(self, text, image_url, image_id,  answer, embedding, **kwargs):
+        # if isinstance(question, Question):
+        #     question = question.content
+        # self.data[embedding_data] = (question, answer, embedding_data)
         pass
 
     def save_query_resp(self, query_resp_dict, **kwargs):
         pass
 
-    def import_data(self, texts: List[Any], image_urls: List[Any], image_ids: List[Any], answers: List[Answer],
-                    embeddings: List[Any], model: Any, iat_type: Any):
+    def import_data(
+        self, texts: List[Any], image_urls: List[Any], image_ids: List[Any], answers: List[Answer],
+            embeddings: List[Any], model: Any, iat_type: Any
+    ):
+        # if len(questions) != len(answers) or len(questions) != len(embedding_datas):
+        #     raise ParamError("Make sure that all parameters have the same length")
+        # for i, embedding_data in enumerate(embedding_datas):
+        #     self.data[embedding_data] = (questions[i], answers[i], embedding_datas[i])
         pass
 
     def get_scalar_data(self, res_data, **kwargs) -> CacheData:
@@ -160,15 +162,13 @@ class SSDataManager(DataManager):
         self.v = v
         self.o = o
 
-    # def save(self, question, answer, embedding_data, **kwargs):
-    #     model = kwargs.pop("model", None)
-    #     self.import_data([question], [answer], [embedding_data], model)
-
     def save(self, text, image_url, image_id,  answer, embedding, **kwargs):
+        # model = kwargs.pop("model", None)
+        # self.import_data([question], [answer], [embedding_data], model)
+
         model = kwargs.pop("model", None)
         mm_type = kwargs.pop("mm_type", None)
-        self.import_data([text], [image_url], [image_id], [answer],
-                             [embedding], model, mm_type)
+        self.import_data([text], [image_url], [image_id], [answer], [embedding], model, mm_type)
 
     def save_query_resp(self, query_resp_dict, **kwargs):
         save_query_start_time = time.time()
@@ -198,8 +198,42 @@ class SSDataManager(DataManager):
 
         return Question(question)
 
-    def import_data(self, texts: List[Any], image_urls: List[Any], image_ids: List[Any], answers: List[Answer],
-                    embeddings: List[Any], model: Any, iat_type: Any):
+    # def import_data(
+    #     self, questions: List[Any], answers: List[Answer], embedding_datas: List[Any], model: Any
+    # ):
+    #     if len(questions) != len(answers) or len(questions) != len(embedding_datas):
+    #         raise ParamError("Make sure that all parameters have the same length")
+    #     cache_datas = []
+    #
+    #     embedding_datas = [
+    #         normalize(embedding_data) for embedding_data in embedding_datas
+    #     ]
+    #
+    #     for i, embedding_data in enumerate(embedding_datas):
+    #         if self.o is not None:
+    #             ans = self._process_answer_data(answers[i])
+    #         else:
+    #             ans = answers[i]
+    #
+    #         question = questions[i]
+    #         embedding_data = embedding_data.astype("float32")
+    #         cache_datas.append([ans, question, embedding_data, model])
+    #
+    #     ids = self.s.batch_insert(cache_datas)
+    #     logging.info('ids: {}'.format(ids))
+    #     self.v.mul_add(
+    #         [
+    #             VectorData(id=ids[i], data=embedding_data)
+    #             for i, embedding_data in enumerate(embedding_datas)
+    #         ],
+    #         model
+    #
+    #     )
+
+    def import_data(
+        self, texts: List[Any], image_urls: List[Any], image_ids: List[Any], answers: List[Answer],
+            embeddings: List[Any], model: Any, mm_type: Any
+    ):
         if len(texts) != len(answers):
             raise ParamError("Make sure that all parameters have the same length")
         cache_datas = []
@@ -220,15 +254,23 @@ class SSDataManager(DataManager):
             # iat_embedding = embedding.astype("float32")
             cache_datas.append([ans, text, image_url, image_id, model])
 
+        # ids = self.s.batch_multimodal_insert(cache_datas)
         ids = self.s.batch_insert(cache_datas)
+        # self.v.multimodal_add(
         self.v.add(
             [
                 VectorData(id=ids[i], data=embedding)
                 for i, embedding in enumerate(embeddings)
             ],
             model,
-            iat_type
+            mm_type
         )
+
+    # def get_scalar_data(self, res_data, **kwargs) -> Optional[CacheData]:
+    #     cache_data = self.s.get_data_by_id(res_data[1])
+    #     if cache_data is None:
+    #         return None
+    #     return cache_data
 
     def get_scalar_data(self, res_data, **kwargs) -> Optional[CacheData]:
         cache_data = self.s.get_data_by_id(res_data[1])
@@ -242,11 +284,29 @@ class SSDataManager(DataManager):
     def hit_cache_callback(self, res_data, **kwargs):
         self.eviction_base.get(res_data[1])
 
+    # def search(self, embedding_data, **kwargs):
+    #     model = kwargs.pop("model", None)
+    #     embedding_data = normalize(embedding_data)
+    #     top_k = kwargs.get("top_k", -1)
+    #     return self.v.search(data=embedding_data, top_k=top_k, model=model)
+
     def search(self, embedding_data, **kwargs):
         model = kwargs.pop("model", None)
+        mm_type = kwargs.pop("mm_type", None)
         embedding_data = normalize(embedding_data)
         top_k = kwargs.get("top_k", -1)
-        return self.v.search(data=embedding_data, top_k=top_k, model=model)
+        try:
+            search_result = self.v.search(data=embedding_data, top_k=top_k, model=model, mm_type=mm_type)
+        except Exception as e:
+            try:
+                message = str(e)
+                if "no such index" in message:
+                    print('no such index异常，创建索引...')
+                self.v.create(model, mm_type)
+                search_result = self.v.search(data=embedding_data, top_k=top_k, model=model, mm_type=mm_type)
+            except Exception as e:
+                raise e
+        return search_result
 
     def delete(self, id_list, **kwargs):
         model = kwargs.pop("model", None)
@@ -264,8 +324,8 @@ class SSDataManager(DataManager):
         return {'status': 'success', 'milvus': 'delete_count: '+str(v_delete_count),
                 'mysql': 'delete_count: '+str(s_delete_count)}
 
-    def create_index(self, model, mm_type, **kwargs):
-        return self.v.create(model, mm_type)
+    def create_index(self, model, type, **kwargs):
+        return self.v.create(model, type)
 
     def truncate(self, model_name):
         # drop vector base data

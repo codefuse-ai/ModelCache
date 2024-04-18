@@ -3,9 +3,9 @@ import time
 import requests
 import base64
 import numpy as np
-from modelcache import cache
-from modelcache.utils.error import NotInitError
-from modelcache.utils.time import time_cal
+from modelcache_mm import cache
+from modelcache_mm.utils.error import NotInitError
+from modelcache_mm.utils.time import time_cal
 
 
 def adapt_insert(*args, **kwargs):
@@ -19,7 +19,7 @@ def adapt_insert(*args, **kwargs):
     cache_enable = chat_cache.cache_enable_func(*args, **kwargs)
     context = kwargs.pop("cache_context", {})
     embedding_data = None
-    pre_embedding_data_dict = chat_cache.mm_insert_pre_embedding_func(
+    pre_embedding_data_dict = chat_cache.insert_pre_embedding_func(
         kwargs,
         extra_param=context.get("pre_embedding_func", None),
         prompts=chat_cache.config.prompts,
@@ -84,7 +84,6 @@ def adapt_insert(*args, **kwargs):
             mm_type = 'text'
         else:
             raise ValueError('maya embedding service return both empty list, please check!')
-
     print('embedding_data: {}'.format(embedding_data))
     chat_cache.data_manager.save(
         pre_embedding_text,

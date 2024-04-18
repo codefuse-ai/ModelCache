@@ -6,11 +6,11 @@ from redis.commands.search.query import Query
 from redis.commands.search.field import VectorField, NumericField
 from redis.client import Redis
 
-from modelcache_mm.manager_mm.vector_data.base import VectorBase, VectorData
-from modelcache.utils import import_redis
-from modelcache.utils.log import modelcache_log
-from modelcache.utils.index_util import get_mm_index_name
-from modelcache.utils.index_util import get_mm_index_prefix
+from modelcache_mm.manager.vector_data.base import VectorBase, VectorData
+from modelcache_mm.utils import import_redis
+from modelcache_mm.utils.log import modelcache_log
+from modelcache_mm.utils.index_util import get_mm_index_name
+from modelcache_mm.utils.index_util import get_mm_index_prefix
 import_redis()
 
 
@@ -51,13 +51,13 @@ class RedisVectorStore(VectorBase):
         modelcache_log.info("Index already exists")
         return True
 
-    def create_index(self, index_name, mm_type, index_prefix):
+    def create_index(self, index_name, type, index_prefix):
         # dimension = self.dimension
-        if mm_type == 'IMG_TEXT':
+        if type == 'IMG_TEXT':
             dimension = self.mm_dimension
-        elif mm_type == 'IMG':
+        elif type == 'IMG':
             dimension = self.i_dimension
-        elif mm_type == 'TEXT':
+        elif type == 'TEXT':
             dimension = self.t_dimension
         else:
             raise ValueError('dimension type exception')
@@ -119,6 +119,16 @@ class RedisVectorStore(VectorBase):
         )
         return [(float(result.distance), int(getattr(result, id_field_name))) for result in results]
 
+    def create(self, model=None, mm_type=None):
+        collection_name_model = get_mm_index_name(model, mm_type)
+        try:
+            index_prefix = get_mm_index_prefix(model, mm_type)
+            self.create_index(collection_name_model, mm_type, index_prefix)
+        except Exception as e:
+            raise ValueError(str(e))
+        return 'success'
+
+
     def rebuild(self, ids=None) -> bool:
         pass
 
@@ -143,10 +153,10 @@ class RedisVectorStore(VectorBase):
             pipe.delete(f"{self.doc_prefix}{data_id}")
         pipe.execute()
 
-    def create(self, model=None, mm_type=None):
-        index_name = get_mm_index_name(model, mm_type)
-        index_prefix = get_mm_index_prefix(model, mm_type)
-        return self.create_index(index_name, mm_type, index_prefix)
+    def create(self, model=None, type=None):
+        index_name = get_mm_index_name(model, type)
+        index_prefix = get_mm_index_prefix(model, type)
+        return self.create_index(index_name, type, index_prefix)
 
     def get_index_by_name(self, index_name):
         pass

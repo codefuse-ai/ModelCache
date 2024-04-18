@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from modelcache.utils.lazy_import import LazyImport
+from modelcache_mm.utils.lazy_import import LazyImport
 
 vector_manager = LazyImport(
-    "vector_manager", globals(), "modelcache.manager_mm.vector_data.manager"
+    "vector_manager", globals(), "modelcache_mm.manager.vector_data.manager"
 )
 
 

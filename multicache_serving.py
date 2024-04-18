@@ -17,19 +17,15 @@ import time
 import json
 import uuid
 import configparser
-from modelcache import cache
-# from modelcache.adapter import adapter
-from modelcache_mm.adapter_mm import adapter
-# from modelcache.manager import CacheBase, VectorBase, get_data_manager
-from modelcache_mm.manager_mm import CacheBase, VectorBase, get_data_manager
-from modelcache.similarity_evaluation.distance import SearchDistanceEvaluation
-from modelcache.processor.pre import mm_insert_dict
-from modelcache.processor.pre import mm_query_dict
 from concurrent.futures import ThreadPoolExecutor
-from modelcache.maya_embedding_service.maya_multi_embedding_service import get_embedding_multi
-from modelcache.maya_embedding_service.maya_multi_embedding_service import get_embedding_multi_concurrent_sin
-from modelcache.processor.pre import query_multi_splicing
-from modelcache.processor.pre import insert_multi_splicing
+from modelcache_mm import cache
+from modelcache_mm.adapter import adapter
+from modelcache_mm.manager import CacheBase, VectorBase, get_data_manager
+from modelcache_mm.similarity_evaluation.distance import SearchDistanceEvaluation
+from modelcache_mm.processor.pre import mm_insert_dict
+from modelcache_mm.processor.pre import mm_query_dict
+from modelcache_mm.maya_embedding_service.maya_multi_embedding_service import get_embedding_multi
+from modelcache_mm.maya_embedding_service.maya_multi_embedding_service import get_embedding_multi_concurrent_sin
 
 
 def save_query_info(result, model, query, delta_time_log):
@@ -59,13 +55,13 @@ class UserBackend:
         text_dimension = 768
 
         mysql_config = configparser.ConfigParser()
-        mysql_config.read('modelcache/config/mysql_config.ini')
+        mysql_config.read('modelcache_mm/config/mysql_config.ini')
 
         # milvus_config = configparser.ConfigParser()
         # milvus_config.read('modelcache/config/milvus_config.ini')
 
         redis_config = configparser.ConfigParser()
-        redis_config.read('modelcache/config/redis_config.ini')
+        redis_config.read('modelcache_mm/config/redis_config.ini')
 
         data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),
                                         VectorBase("redis", mm_dimension=image_dimension+text_dimension,
@@ -76,16 +72,14 @@ class UserBackend:
             embedding_concurrent_func=get_embedding_multi_concurrent_sin,
             data_manager=data_manager,
             similarity_evaluation=SearchDistanceEvaluation(),
-            query_pre_embedding_func=query_multi_splicing,
-            insert_pre_embedding_func=insert_multi_splicing,
-            mm_insert_pre_embedding_func=mm_insert_dict,
-            mm_query_pre_embedding_func=mm_query_dict,
+            insert_pre_embedding_func=mm_insert_dict,
+            query_pre_embedding_func=mm_query_dict,
         )
         self.gptcache_version = datetime.now().strftime("%Y-%m-%d %H:%M")
         self.executor = ThreadPoolExecutor(max_workers=6)
 
     def __call__(self, param):
-        print('mm_version: {}'.format(self.gptcache_version))
+        print('version: {}'.format(self.gptcache_version))
         print('call_time: {}'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
         try:
             param_dict = json.loads(param)
@@ -108,16 +102,16 @@ class UserBackend:
                 model = model.replace('.', '_')
                 print('model: {}'.format(model))
 
-            if request_type in ['mm_query', 'mm_insert']:
-                if request_type == 'mm_query':
+            if request_type in ['query', 'insert']:
+                if request_type == 'query':
                     query = param_dict.get("query")
-                elif request_type == 'mm_insert':
+                elif request_type == 'insert':
                     chat_info = param_dict.get("chat_info")
                     query = chat_info[-1]['query']
 
-            if request_type is None or request_type not in ['mm_query', 'mm_remove', 'mm_insert', 'mm_register']:
+            if request_type is None or request_type not in ['query', 'remove', 'insert', 'register']:
                 result = {"errorCode": 102,
-                          "errorDesc": "type exception, should one of ['mm_query', 'mm_insert', 'mm_remove', 'mm_register']",
+                          "errorDesc": "type exception, should one of ['query', 'insert', 'remove', 'register']",
                           "cacheHit": False, "delta_time": 0, "hit_query": '', "answer": ''}
                 cache.data_manager.save_query_resp(result, model=model, query='', delta_time=0)
                 return json.dumps(result)
@@ -126,7 +120,7 @@ class UserBackend:
                       "answer": ''}
             return json.dumps(result)
 
-        if request_type == 'mm_query':
+        if request_type == 'query':
             if UUID:
                 try:
                     uuid_list = UUID.split('==>')
@@ -137,7 +131,7 @@ class UserBackend:
                     print('uuid_e: {}'.format(e))
             try:
                 start_time = time.time()
-                response = adapter.ChatCompletion.create_mm_query(
+                response = adapter.ChatCompletion.create_query(
                     scope={"model": model},
                     query=query,
                 )
@@ -162,12 +156,13 @@ class UserBackend:
                 query_time = round(time.time() - start_time, 2)
                 print('query_time: {}'.format(query_time))
             except Exception as e:
-                result = {"errorCode": 202, "errorDesc": str(e), "cacheHit": False, "delta_time": 0,
-                          "hit_query": '', "answer": ''}
+                # result = {"errorCode": 202, "errorDesc": str(e), "cacheHit": False, "delta_time": 0,
+                #           "hit_query": '', "answer": ''}
+                raise e
             print('result: {}'.format(result))
             return json.dumps(result, ensure_ascii=False)
 
-        if request_type == 'mm_insert':
+        if request_type == 'insert':
             if UUID:
                 try:
                     uuid_list = UUID.split('==>')
@@ -179,7 +174,7 @@ class UserBackend:
             try:
                 start_time = time.time()
                 try:
-                    response = adapter.ChatCompletion.create_mm_insert(
+                    response = adapter.ChatCompletion.create_insert(
                         model=model,
                         chat_info=chat_info,
                     )
@@ -201,12 +196,12 @@ class UserBackend:
                 # return json.dumps(result, ensure_ascii=False)
                 raise e
 
-        if request_type == 'mm_remove':
+        if request_type == 'remove':
             remove_type = param_dict.get("remove_type")
             id_list = param_dict.get("id_list", [])
             print('remove_type: {}'.format(remove_type))
 
-            response = adapter.ChatCompletion.create_mm_remove(
+            response = adapter.ChatCompletion.create_remove(
                 model=model,
                 remove_type=remove_type,
                 id_list=id_list
@@ -224,11 +219,11 @@ class UserBackend:
                 result = {"errorCode": 402, "errorDesc": "", "response": response, "writeStatus": "exception"}
             return json.dumps(result)
 
-        if request_type == 'mm_register':
-            mm_type = param_dict.get("mm_type")
-            response = adapter.ChatCompletion.create_mm_register(
+        if request_type == 'register':
+            type = param_dict.get("type")
+            response = adapter.ChatCompletion.create_register(
                 model=model,
-                mm_type=mm_type
+                type=type
                 )
             if response in ['create_success', 'already_exists']:
                 result = {"errorCode": 0, "errorDesc": "", "response": response, "writeStatus": "success"}
@@ -252,23 +247,23 @@ class UserBackend:
 
 if __name__ == '__main__':
     # ============01
-    request_type = 'mm_insert'
-    scope = {"model": "test_0313"}
-    # UUID = "820b0052-d9d8-11ee-95f1-52775e3e6fd1" + "==>" + str(time.time())
-    UUID = str(uuid.uuid1()) + "==>" + str(time.time())
-    print('UUID: {}'.format(UUID))
-    img_data = "http://resarch.oss-cn-hangzhou-zmf.aliyuncs.com/transFile%2Ftmp%2FLMM_test_image_coco%2FCOCO_train2014_000000332345.jpg"
-    query = {'text': ['父母带着孩子来这个地方可能会有什么顾虑'],
-             'imageRaw': '',
-             'imageUrl': img_data,
-             'imageId': 'ccc'}
-    answer = "应该注意小孩不要跑到铁轨上"
-    chat_info = [{"query": query, "answer": answer}]
-    data_dict = {'request_type': request_type, 'scope': scope, 'chat_info': chat_info, 'UUID': UUID}
-    r1 = json.dumps(data_dict)
+    # request_type = 'insert'
+    # scope = {"model": "test_0313"}
+    # # UUID = "820b0052-d9d8-11ee-95f1-52775e3e6fd1" + "==>" + str(time.time())
+    # UUID = str(uuid.uuid1()) + "==>" + str(time.time())
+    # print('UUID: {}'.format(UUID))
+    # img_data = "http://resarch.oss-cn-hangzhou-zmf.aliyuncs.com/transFile%2Ftmp%2FLMM_test_image_coco%2FCOCO_train2014_000000332345.jpg"
+    # query = {'text': ['父母带着孩子来这个地方可能会有什么顾虑'],
+    #          'imageRaw': '',
+    #          'imageUrl': img_data,
+    #          'imageId': 'ccc'}
+    # answer = "应该注意小孩不要跑到铁轨上"
+    # chat_info = [{"query": query, "answer": answer}]
+    # data_dict = {'request_type': request_type, 'scope': scope, 'chat_info': chat_info, 'UUID': UUID}
+    # r1 = json.dumps(data_dict)
 
     # ============02
-    # request_type = 'mm_query'
+    # request_type = 'query'
     # UUID = str(uuid.uuid1()) + "==>" + str(time.time())
     # scope = {"model": "test_0313"}
     # img_data = 'http://resarch.oss-cn-hangzhou-zmf.aliyuncs.com/transFile%2Ftmp%2FLMM_test_image_coco%2FCOCO_train2014_000000332345.jpg'
@@ -279,17 +274,16 @@ if __name__ == '__main__':
     # r1 = json.dumps({'request_type': request_type, 'scope': scope, 'query': query, 'UUID': UUID})
 
     # ============03
-    # request_type = 'mm_remove'
-    # scope = {"model": "test_0313"}
-    # # mm_type = 'IMG_TEXT'
-    # remove_type = 'truncate_by_model'
-    # r1 = json.dumps({'request_type': request_type, 'scope': scope, 'remove_type': remove_type})
+    request_type = 'remove'
+    scope = {"model": "test_0313"}
+    remove_type = 'truncate_by_model'
+    r1 = json.dumps({'request_type': request_type, 'scope': scope, 'remove_type': remove_type})
 
     # ============04
-    # request_type = 'mm_register'
+    # request_type = 'register'
     # scope = {"model": "test_0313"}
-    # mm_type = 'IMG_TEXT'
-    # r1 = json.dumps({'request_type': request_type, 'scope': scope, 'mm_type': mm_type})
+    # type = 'IMG_TEXT'
+    # r1 = json.dumps({'request_type': request_type, 'scope': scope, 'type': type})
 
     user_backend = UserBackend()
     resp = user_backend(r1)

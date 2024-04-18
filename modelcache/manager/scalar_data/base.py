@@ -95,7 +95,7 @@ class CacheStorage(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def batch_insert(self, all_data: List[CacheData]):
+    def batch_iat_insert(self, all_data: List[CacheData]):
         pass
 
     @abstractmethod

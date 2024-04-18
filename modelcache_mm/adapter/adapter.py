@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from modelcache_mm.adapter_mm.adapter_query import adapt_query
-from modelcache_mm.adapter_mm.adapter_insert import adapt_insert
-from modelcache_mm.adapter_mm.adapter_remove import adapt_remove
-from modelcache_mm.adapter_mm.adapter_register import adapt_register
+from modelcache_mm.adapter.adapter_query import adapt_query
+from modelcache_mm.adapter.adapter_insert import adapt_insert
+from modelcache_mm.adapter.adapter_remove import adapt_remove
+from modelcache_mm.adapter.adapter_register import adapt_register
 
 
 class ChatCompletion(object):
     """Openai ChatCompletion Wrapper"""
     @classmethod
-    def create_mm_query(cls, *args, **kwargs):
+    def create_query(cls, *args, **kwargs):
         def cache_data_convert(cache_data, cache_query):
             return construct_resp_from_cache(cache_data, cache_query)
         try:
@@ -20,10 +20,10 @@ class ChatCompletion(object):
                 **kwargs
             )
         except Exception as e:
-            return str(e)
-
+            # return str(e)
+            raise e
     @classmethod
-    def create_mm_insert(cls, *args, **kwargs):
+    def create_insert(cls, *args, **kwargs):
         try:
             return adapt_insert(
                 *args,
@@ -34,18 +34,17 @@ class ChatCompletion(object):
             raise e
 
     @classmethod
-    def create_mm_remove(cls, *args, **kwargs):
+    def create_remove(cls, *args, **kwargs):
         try:
             return adapt_remove(
                 *args,
                 **kwargs
             )
         except Exception as e:
-            logging.info('adapt_remove_e: {}'.format(e))
-            return str(e)
+            raise e
 
     @classmethod
-    def create_mm_register(cls, *args, **kwargs):
+    def create_register(cls, *args, **kwargs):
         try:
             return adapt_register(
                 *args,

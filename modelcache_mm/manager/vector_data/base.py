@@ -15,11 +15,19 @@ class VectorBase(ABC):
     """VectorBase: base vector store interface"""
 
     @abstractmethod
-    def add(self, datas: List[VectorData], model=None):
+    def add(self, datas: List[VectorData], model=None, mm_type=None):
+        pass
+
+    # @abstractmethod
+    # def search(self, data: np.ndarray, top_k: int, model):
+    #     pass
+
+    @abstractmethod
+    def search(self, data: np.ndarray, top_k: int, model, mm_type):
         pass
 
     @abstractmethod
-    def search(self, data: np.ndarray, top_k: int, model):
+    def create(self, model=None, mm_type=None):
         pass
 
     @abstractmethod

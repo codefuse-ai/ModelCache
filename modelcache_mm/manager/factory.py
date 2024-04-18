@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from typing import Union, Callable
-from modelcache_mm.manager_mm import CacheBase, VectorBase, ObjectBase
-from modelcache_mm.manager_mm.data_manager import SSDataManager, MapDataManager
+from modelcache_mm.manager import CacheBase, VectorBase, ObjectBase
+from modelcache_mm.manager.data_manager import SSDataManager, MapDataManager
 
 
 def get_data_manager(
@@ -16,7 +16,6 @@ def get_data_manager(
 ):
     if not cache_base and not vector_base:
         return MapDataManager(data_path, max_size, get_data_container)
-
     if isinstance(cache_base, str):
         cache_base = CacheBase(name=cache_base)
     if isinstance(vector_base, str):
