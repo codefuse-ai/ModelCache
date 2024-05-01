@@ -90,9 +90,9 @@ class RedisVectorStore(VectorBase):
 
     def search(self, data: np.ndarray, top_k: int = -1, model=None):
         index_name = get_index_name(model)
+        print('index_name: {}'.format(index_name))
         id_field_name = "data_id"
         embedding_field_name = "data_vector"
-
         base_query = f'*=>[KNN 2 @{embedding_field_name} $vector AS distance]'
         query = (
             Query(base_query)
@@ -107,6 +107,7 @@ class RedisVectorStore(VectorBase):
             .search(query, query_params=query_params)
             .docs
         )
+        print('results: {}'.format(results))
         return [(float(result.distance), int(getattr(result, id_field_name))) for result in results]
 
     def rebuild(self, ids=None) -> bool:

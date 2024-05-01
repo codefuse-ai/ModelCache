@@ -212,6 +212,7 @@ class SSDataManager(DataManager):
             cache_datas.append([ans, question, embedding_data, model])
 
         ids = self.s.batch_insert(cache_datas)
+        print('ids: {}'.format(ids))
         logging.info('ids: {}'.format(ids))
         self.v.mul_add(
             [

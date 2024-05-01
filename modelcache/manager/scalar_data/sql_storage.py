@@ -61,7 +61,6 @@ class SQLStorage(CacheStorage):
     def batch_insert(self, all_data: List[CacheData]):
         ids = []
         for data in all_data:
-            print('data: {}'.format(data))
             ids.append(self._insert(data))
         return ids
 
