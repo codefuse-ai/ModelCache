@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-import time
-import requests
+import logging
 import numpy as np
-import base64
 from modelcache_mm import cache
 from modelcache_mm.utils.error import NotInitError
 from modelcache_mm.utils.error import MultiTypeError
@@ -37,12 +35,6 @@ def adapt_query(cache_data_convert, *args, **kwargs):
             raise ValueError(
                 "Both pre_embedding_imageUrl and pre_embedding_imageRaw cannot be non-empty at the same time.")
         if pre_embedding_image_url:
-            # url_start_time = time.time()
-            # response = requests.get(pre_embedding_image_url)
-            # image_data = response.content
-            # pre_embedding_image = base64.b64encode(image_data).decode('utf-8')
-            # get_image_time = '{}s'.format(round(time.time() - url_start_time, 2))
-            # print('get_image_time: {}'.format(get_image_time))
             pre_embedding_image = pre_embedding_image_url
         elif pre_embedding_image_raw:
             pre_embedding_image = pre_embedding_image_raw
@@ -50,12 +42,10 @@ def adapt_query(cache_data_convert, *args, **kwargs):
             raise ValueError(
                 "Both pre_embedding_imageUrl and pre_embedding_imageRaw are empty. Please provide at least one.")
         data_dict = {'text': [pre_embedding_text], 'image': pre_embedding_image}
-        # print('data_dict: {}'.format(data_dict))
     elif pre_multi_type == 'TEXT':
         data_dict = {'text': [pre_embedding_text], 'image': None}
     else:
         raise MultiTypeError
-    # print('data_dict: {}'.format(data_dict))
 
     embedding_data = None
     mm_type = None
@@ -75,14 +65,7 @@ def adapt_query(cache_data_convert, *args, **kwargs):
         image_embeddings = embedding_data_resp['image_embedding']
         text_embeddings = embedding_data_resp['text_embeddings']
 
-        print('image_embeddings: {}'.format(image_embeddings))
-        print('image_embeddings_len: {}'.format(len(image_embeddings)))
-        print('text_embeddings: {}'.format(text_embeddings))
-        print('text_embeddings_len: {}'.format(len(text_embeddings)))
-
         if len(image_embeddings) > 0 and len(image_embeddings) > 0:
-            # image_embedding = np.array(image_embeddings[0])
-            # text_embedding = np.array(text_embeddings[0])
             embedding_data = np.concatenate((image_embeddings, text_embeddings))
             mm_type = 'mm'
         elif len(image_embeddings) > 0:
@@ -144,14 +127,10 @@ def adapt_query(cache_data_convert, *args, **kwargs):
                 cache_data_dict,
                 extra_param=context.get("evaluation_func", None),
             )
-
-        print('rank_pre: {}'.format(rank_pre))
-        print('rank_threshold: {}'.format(rank_threshold))
         if rank_pre < rank_threshold:
             return
 
         for cache_data in cache_data_list:
-            print('cache_data: {}'.format(cache_data))
             primary_id = cache_data[1]
             ret = chat_cache.data_manager.get_scalar_data(
                 cache_data, extra_param=context.get("get_scalar_data", None)
@@ -189,9 +168,6 @@ def adapt_query(cache_data_convert, *args, **kwargs):
                 eval_cache_data,
                 extra_param=context.get("evaluation_func", None),
             )
-            print('rank_threshold: {}'.format(rank_threshold))
-            print('rank_threshold_long: {}'.format(rank_threshold_long))
-            print('rank: {}'.format(rank))
 
             if len(pre_embedding_text) <= 50:
                 if rank_threshold <= rank:
@@ -214,8 +190,6 @@ def adapt_query(cache_data_convert, *args, **kwargs):
         cache_questions = sorted(cache_questions, key=lambda x: x[0], reverse=True)
         cache_ids = sorted(cache_ids, key=lambda x: x[0], reverse=True)
 
-        print('cache_answers: {}'.format(cache_answers))
-
         if len(cache_answers) != 0:
             return_message = chat_cache.post_process_messages_func(
                 [t[1] for t in cache_answers]
@@ -236,7 +210,7 @@ def adapt_query(cache_data_convert, *args, **kwargs):
             try:
                 chat_cache.data_manager.update_hit_count(return_id)
             except Exception:
-                print('update_hit_count except, please check!')
+                logging.warning('update_hit_count except, please check!')
 
             chat_cache.report.hint_cache()
             return_query_dict = {"image_url": return_image_url, "image_id": return_image_id, "question": return_query}

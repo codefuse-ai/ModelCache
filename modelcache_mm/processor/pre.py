@@ -83,11 +83,9 @@ def multi_splicing(data_list) -> Any:
 
 def multi_analysis(dialog_str):
     sub_strings = dialog_str.split('|||')
-
     dict_list = []
     for s in sub_strings:
         parts = s.split('###')
-
         if len(parts) == 2:
             role = parts[0]
             content = parts[1]
@@ -96,14 +94,11 @@ def multi_analysis(dialog_str):
             content = '###'.join(parts[1:])
         else:
             content = 'exception'
-
         if content == '':
             d = {"role": role}
         else:
             d = {"role": role, "content": content}
         dict_list.append(d)
-
-    # 3. 将每个字典添加到一个列表中，得到最终的列表
     result_list = dict_list
 
     # 输出结果
@@ -111,7 +106,6 @@ def multi_analysis(dialog_str):
 
 
 def mm_insert_dict(data: Dict[str, Any], **_: Dict[str, Any]) -> Any:
-    print('chat_info: {}'.format(data.get("chat_info")))
     query_dict = data.get("chat_info")[-1]['query']
     return query_dict
 

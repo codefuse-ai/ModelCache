@@ -1,72 +1,8 @@
 # -*- coding: utf-8 -*-
-import os
-import time
-
-import pymysql
 import json
-import base64
 from typing import List
 from modelcache.manager.scalar_data.base import CacheStorage, CacheData
 import sqlite3
-
-
-# def insert_single_data(conn, sql, data_tuple):
-#     cur = conn.cursor()
-#     try:
-#         cur.execute(sql, data_tuple)
-#         conn.commit()
-#         id = cur.lastrowid
-#         # print('id: {}'.format(id))
-#         return id
-#     except Exception as e:
-#         print(e)
-#         conn.rollback()
-#     if cur:
-#         cur.close()
-#
-#
-# def excute_sql(conn, sql):
-#     cur = conn.cursor()
-#     try:
-#         cur.execute(sql)
-#         conn.commit()
-#     except Exception as e:
-#         print(e)
-#         conn.rollback()
-#     if cur:
-#         cur.close()
-#
-#
-# def excute_delete_sql(conn, sql):
-#     cur = conn.cursor()
-#     try:
-#         cur.execute(sql)
-#         row_count = cur.rowcount
-#         conn.commit()
-#     except Exception as e:
-#         print(e)
-#         conn.rollback()
-#     if cur:
-#         cur.close()
-#     return row_count
-#
-#
-# def query_fetch_one_data(conn, sql):
-#     cursor = conn.cursor()
-#     try:
-#         cursor.execute(sql)
-#     except Exception as e:
-#         print(e)
-#         conn.rollback()
-#     rows = cursor.fetchone()
-#     if cursor:
-#         cursor.close()
-#     return rows
-#
-#
-# def close(conn):
-#     if conn:
-#         conn.close()
 
 
 class SQLStorage(CacheStorage):
@@ -77,7 +13,6 @@ class SQLStorage(CacheStorage):
         url="./sqlite.db"
     ):
         self._url = url
-        # self._engine = sqlite3.connect(url)
         self.create()
 
     def create(self):

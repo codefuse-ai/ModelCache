@@ -10,7 +10,6 @@ def get_index_prefix(model):
 
 
 def get_mm_index_name(model, mm_type):
-    print('mm_type: {}'.format(mm_type))
     if mm_type not in ['IMG_TEXT', 'mm', 'IMG', 'image', 'TEXT', 'text']:
         raise ValueError('mm_type is not normal!')
     if mm_type == 'IMG_TEXT':
@@ -24,7 +23,6 @@ def get_mm_index_name(model, mm_type):
 
 def get_mm_index_prefix(model, mm_type):
     if mm_type not in ['IMG_TEXT', 'mm', 'IMG', 'image', 'TEXT', 'text']:
-        print('mm_type: {}'.format(mm_type))
         raise ValueError('mm_type is not normal!')
     if mm_type == 'IMG_TEXT':
         mm_type = 'mm'

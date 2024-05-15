@@ -4,7 +4,6 @@ from modelcache.similarity_evaluation.similarity_evaluation import SimilarityEva
 
 
 class ExactMatchEvaluation(SimilarityEvaluation):
-
     def __init__(self):
         pass
 

@@ -16,7 +16,6 @@ def adapt_remove(*args, **kwargs):
     # delete data
     if remove_type == 'delete_by_id':
         id_list = kwargs.pop("id_list", [])
-        print('id_list: {}'.format(id_list))
         resp = chat_cache.data_manager.delete(id_list, model=model)
     elif remove_type == 'truncate_by_model':
         resp = chat_cache.data_manager.truncate(model)

@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-import time
-import requests
-import base64
 import numpy as np
 from modelcache_mm import cache
 from modelcache_mm.utils.error import NotInitError
@@ -25,7 +22,6 @@ def adapt_insert(*args, **kwargs):
         prompts=chat_cache.config.prompts,
     )
 
-    print('pre_embedding_data_dict: {}'.format(pre_embedding_data_dict))
     chat_info = kwargs.pop("chat_info", [])
     llm_data = chat_info[-1]['answer']
 
@@ -38,12 +34,6 @@ def adapt_insert(*args, **kwargs):
         raise ValueError("Both pre_embedding_image_url and pre_embedding_image_raw cannot be non-empty at the same time.")
 
     if pre_embedding_image_url:
-        # url_start_time = time.time()
-        # response = requests.get(pre_embedding_image_url)
-        # image_data = response.content
-        # pre_embedding_image = base64.b64encode(image_data).decode('utf-8')
-        # get_image_time = '{}s'.format(round(time.time() - url_start_time, 2))
-        # print('get_image_time: {}'.format(get_image_time))
         pre_embedding_image = pre_embedding_image_url
     elif pre_embedding_image_raw:
         pre_embedding_image = pre_embedding_image_raw
@@ -67,9 +57,6 @@ def adapt_insert(*args, **kwargs):
         image_embeddings = embedding_data_resp['image_embedding']
         text_embeddings = embedding_data_resp['text_embeddings']
 
-        print('image_embeddings: {}'.format(image_embeddings))
-        print('text_embeddings: {}'.format(text_embeddings))
-
         if len(image_embeddings) > 0 and len(image_embeddings) > 0:
             # image_embedding = np.array(image_embeddings[0])
             # text_embedding = text_embeddings[0]
@@ -85,7 +72,6 @@ def adapt_insert(*args, **kwargs):
             mm_type = 'text'
         else:
             raise ValueError('maya embedding service return both empty list, please check!')
-    print('embedding_data: {}'.format(embedding_data))
     chat_cache.data_manager.save(
         pre_embedding_text,
         pre_embedding_image_url,

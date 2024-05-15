@@ -8,10 +8,10 @@ import_torch()
 import_timm()
 import_pillow()
 
-import torch  # pylint: disable=C0413
-from timm.models import create_model  # pylint: disable=C0413
-from timm.data import create_transform, resolve_data_config  # pylint: disable=C0413
-from PIL import Image  # pylint: disable=C0413
+import torch
+from timm.models import create_model
+from timm.data import create_transform, resolve_data_config
+from PIL import Image
 
 
 class Timm(BaseEmbedding):
@@ -26,7 +26,7 @@ class Timm(BaseEmbedding):
 
         try:
             self.__dimension = self.model.embed_dim
-        except Exception:  # pylint: disable=W0703
+        except Exception:
             self.__dimension = None
 
     def to_embeddings(self, data, skip_preprocess: bool = False, **_):
@@ -61,7 +61,6 @@ class Timm(BaseEmbedding):
     @property
     def dimension(self):
         """Embedding dimension.
-
         :return: embedding dimension
         """
         if not self.__dimension:

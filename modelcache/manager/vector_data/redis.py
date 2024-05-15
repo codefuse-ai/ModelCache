@@ -49,7 +49,6 @@ class RedisVectorStore(VectorBase):
 
     def create_index(self, index_name, index_prefix):
         dimension = self.dimension
-        print('dimension: {}'.format(dimension))
         if self._check_index_exists(index_name):
             modelcache_log.info(
                 "The %s already exists, and it will be used directly", index_name
@@ -90,7 +89,6 @@ class RedisVectorStore(VectorBase):
 
     def search(self, data: np.ndarray, top_k: int = -1, model=None):
         index_name = get_index_name(model)
-        print('index_name: {}'.format(index_name))
         id_field_name = "data_id"
         embedding_field_name = "data_vector"
         base_query = f'*=>[KNN 2 @{embedding_field_name} $vector AS distance]'
@@ -107,7 +105,6 @@ class RedisVectorStore(VectorBase):
             .search(query, query_params=query_params)
             .docs
         )
-        print('results: {}'.format(results))
         return [(float(result.distance), int(getattr(result, id_field_name))) for result in results]
 
     def rebuild(self, ids=None) -> bool:
