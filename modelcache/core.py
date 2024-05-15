@@ -4,7 +4,7 @@ from typing import Optional, List, Any
 from modelcache.processor.post import first
 from modelcache.similarity_evaluation import ExactMatchEvaluation
 from modelcache.similarity_evaluation import SimilarityEvaluation
-from modelcache.embedding.string import to_embeddings as string_embedding
+from modelcache.embedding.string_text import to_embeddings as string_embedding
 from modelcache.report import Report
 from modelcache.config import Config
 from modelcache.utils.cache_func import cache_all
