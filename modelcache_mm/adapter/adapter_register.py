@@ -9,8 +9,5 @@ def adapt_register(*args, **kwargs):
     if model is None or len(model) == 0:
         return ValueError('')
 
-    print('type: {}'.format(type))
-    print('model: {}'.format(model))
     register_resp = chat_cache.data_manager.create_index(model, type)
-    print('register_resp: {}'.format(register_resp))
     return register_resp

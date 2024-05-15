@@ -136,7 +136,6 @@ class Milvus(VectorBase):
 
     def mul_add(self, datas: List[VectorData], model=None):
         collection_name_model = self.collection_name + '_' + model
-        print('collection_name_model: {}'.format(collection_name_model))
         self._create_collection(collection_name_model)
 
         data_array, id_array = map(list, zip(*((data.data, data.id) for data in datas)))
@@ -148,7 +147,6 @@ class Milvus(VectorBase):
         if top_k == -1:
             top_k = self.top_k
         collection_name_model = self.collection_name + '_' + model
-        print('collection_name_model: {}'.format(collection_name_model))
         self._create_collection(collection_name_model)
         search_result = self.col.search(
             data=data.reshape(1, -1).tolist(),

@@ -79,7 +79,6 @@ class SQLStorage(CacheStorage):
         finally:
             # Close the connection and return it to the connection pool.
             conn.close()
-        print('insert retrun id: {}'.format(id))
         return id
 
     def batch_insert(self, all_data: List[CacheData]):
@@ -139,16 +138,12 @@ class SQLStorage(CacheStorage):
         table_name = "open_cache_mm_answer"
         query_sql = "select question_text, image_url, image_id, answer, model from {} where id={}".format(table_name, key)
         conn = self.pool.connection()
-        search_start = time.time()
         try:
             with conn.cursor() as cursor:
-                # 执行数据库操作
                 cursor.execute(query_sql)
                 resp = cursor.fetchone()
         finally:
-            # 关闭连接，将连接返回给连接池
             conn.close()
-        print('ob_search_cost_time: {}'.format(time.time() - search_start))
 
         if resp is not None and len(resp) == 5:
             return resp
@@ -160,14 +155,11 @@ class SQLStorage(CacheStorage):
         update_sql = "UPDATE {} SET hit_count = hit_count+1 WHERE id={}".format(table_name, primary_id)
         conn = self.pool.connection()
 
-        # 使用连接执行更新数据操作
         try:
             with conn.cursor() as cursor:
-                # 执行更新数据操作
                 cursor.execute(update_sql)
                 conn.commit()
         finally:
-            # 关闭连接，将连接返回给连接池
             conn.close()
 
     def get_ids(self, deleted=True):
@@ -177,33 +169,25 @@ class SQLStorage(CacheStorage):
         table_name = "open_cache_mm_answer"
         delete_sql = "Delete from {} WHERE id in ({})".format(table_name, ",".join([str(i) for i in keys]))
 
-        # 从连接池中获取连接
         conn = self.pool.connection()
         try:
             with conn.cursor() as cursor:
-                # 执行删除数据操作
                 cursor.execute(delete_sql)
                 delete_count = cursor.rowcount
                 conn.commit()
         finally:
-            # 关闭连接，将连接返回给连接池
             conn.close()
         return delete_count
 
     def model_deleted(self, model_name):
         table_name = "open_cache_mm_answer"
         delete_sql = "Delete from {} WHERE model='{}'".format(table_name, model_name)
-        # print('delete_sql: {}'.format(delete_sql))
-        # print('delete_sql begin')
         conn = self.pool.connection()
-        # 使用连接执行删除数据操作
         try:
             with conn.cursor() as cursor:
-                # 执行删除数据操作
                 resp = cursor.execute(delete_sql)
                 conn.commit()
         finally:
-            # 关闭连接，将连接返回给连接池
             conn.close()
         return resp
 

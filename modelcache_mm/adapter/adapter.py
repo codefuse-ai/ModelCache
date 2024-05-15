@@ -22,6 +22,7 @@ class ChatCompletion(object):
         except Exception as e:
             # return str(e)
             raise e
+
     @classmethod
     def create_insert(cls, *args, **kwargs):
         try:

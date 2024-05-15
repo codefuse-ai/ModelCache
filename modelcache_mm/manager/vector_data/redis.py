@@ -61,7 +61,6 @@ class RedisVectorStore(VectorBase):
             dimension = self.t_dimension
         else:
             raise ValueError('dimension type exception')
-        print('dimension: {}'.format(dimension))
         if self._check_index_exists(index_name):
             modelcache_log.info(
                 "The %s already exists, and it will be used directly", index_name
@@ -134,7 +133,6 @@ class RedisVectorStore(VectorBase):
     def rebuild_idx(self, model, mm_type=None):
         for mm_type in ['IMG_TEXT', 'TEXT']:
             index_name = get_mm_index_name(model, mm_type)
-            print('remove index_name: {}'.format(index_name))
             if self._check_index_exists(index_name):
                 try:
                     self._client.ft(index_name).dropindex(delete_documents=True)

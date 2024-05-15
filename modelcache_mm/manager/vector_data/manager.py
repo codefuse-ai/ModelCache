@@ -73,7 +73,6 @@ class VectorBase:
             redis_config = kwargs.get("redis_config")
 
             mm_dimension = kwargs.get("mm_dimension", DIMENSION)
-            print('mm_dimension: {}'.format(mm_dimension))
             i_dimension = kwargs.get("i_dimension", DIMENSION)
             t_dimension = kwargs.get("t_dimension", DIMENSION)
             VectorBase.check_dimension(mm_dimension)

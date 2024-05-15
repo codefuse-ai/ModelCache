@@ -13,7 +13,6 @@ def run():
     headers = {"Content-Type": "application/json"}
     res = requests.post(url, headers=headers, json=json.dumps(data))
     res_text = res.text
-    print('res_text: {}'.format(res_text))
 
 
 if __name__ == '__main__':

@@ -1,14 +1,5 @@
 # -*- coding: utf-8 -*-
 class EvictionManager:
-    """
-    EvictionManager to manager the eviction policy.
-
-    :param scalar_storage: CacheStorage to manager the scalar data.
-    :type scalar_storage: :class:`CacheStorage`
-    :param vector_base: VectorBase to manager the vector data.
-    :type vector_base:  :class:`VectorBase`
-    """
-
     MAX_MARK_COUNT = 5000
     MAX_MARK_RATE = 0.1
     BATCH_SIZE = 100000
