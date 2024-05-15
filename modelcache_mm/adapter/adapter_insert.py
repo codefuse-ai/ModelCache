@@ -38,12 +38,13 @@ def adapt_insert(*args, **kwargs):
         raise ValueError("Both pre_embedding_image_url and pre_embedding_image_raw cannot be non-empty at the same time.")
 
     if pre_embedding_image_url:
-        url_start_time = time.time()
-        response = requests.get(pre_embedding_image_url)
-        image_data = response.content
-        pre_embedding_image = base64.b64encode(image_data).decode('utf-8')
-        get_image_time = '{}s'.format(round(time.time() - url_start_time, 2))
-        print('get_image_time: {}'.format(get_image_time))
+        # url_start_time = time.time()
+        # response = requests.get(pre_embedding_image_url)
+        # image_data = response.content
+        # pre_embedding_image = base64.b64encode(image_data).decode('utf-8')
+        # get_image_time = '{}s'.format(round(time.time() - url_start_time, 2))
+        # print('get_image_time: {}'.format(get_image_time))
+        pre_embedding_image = pre_embedding_image_url
     elif pre_embedding_image_raw:
         pre_embedding_image = pre_embedding_image_raw
     else:
@@ -70,9 +71,9 @@ def adapt_insert(*args, **kwargs):
         print('text_embeddings: {}'.format(text_embeddings))
 
         if len(image_embeddings) > 0 and len(image_embeddings) > 0:
-            image_embedding = np.array(image_embeddings[0])
-            text_embedding = text_embeddings[0]
-            embedding_data = np.concatenate((image_embedding, text_embedding))
+            # image_embedding = np.array(image_embeddings[0])
+            # text_embedding = text_embeddings[0]
+            embedding_data = np.concatenate((image_embeddings, text_embeddings))
             mm_type = 'mm'
         elif len(image_embeddings) > 0:
             image_embedding = np.array(image_embeddings[0])

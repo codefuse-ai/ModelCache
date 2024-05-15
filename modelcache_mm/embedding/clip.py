@@ -14,15 +14,11 @@ from modelscope.preprocessors.image import load_image
 
 
 class ClipAudio(BaseEmbedding):
-    def __init__(self, model: str = "sentence-transformers/all-MiniLM-L6-v2"):
-        # current_dir = os.path.dirname(os.path.abspath(__file__))
-        # parent_dir = os.path.dirname(current_dir)
-        # model_dir = os.path.dirname(parent_dir)
-        # model = os.path.join(model_dir, 'model/text2vec-base-chinese/')
-
+    def __init__(self, model: str = 'damo/multi-modal_clip-vit-base-patch16_zh'):
+        self.model = model
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.clip_pipeline = pipeline(task=Tasks.multi_modal_embedding,
-                                      model='damo/multi-modal_clip-vit-base-patch16_zh', model_revision='v1.0.1')
-
+                                      model=model, model_revision='v1.0.1')
         self.__dimension = 1024
 
     def to_embeddings(self, data_dict, **_):

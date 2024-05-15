@@ -30,8 +30,6 @@ def adapt_query(cache_data_convert, *args, **kwargs):
     pre_embedding_image_raw = pre_embedding_data_dict['imageRaw']
     pre_embedding_image_url = pre_embedding_data_dict['imageUrl']
     pre_multi_type = pre_embedding_data_dict['multiType']
-    # print('pre_embedding_image_url: {}'.format(pre_embedding_image_url))
-    # print('pre_embedding_text: {}'.format(pre_embedding_text))
 
     # 判断逻辑
     if pre_multi_type == 'IMG_TEXT':
@@ -39,12 +37,13 @@ def adapt_query(cache_data_convert, *args, **kwargs):
             raise ValueError(
                 "Both pre_embedding_imageUrl and pre_embedding_imageRaw cannot be non-empty at the same time.")
         if pre_embedding_image_url:
-            url_start_time = time.time()
-            response = requests.get(pre_embedding_image_url)
-            image_data = response.content
-            pre_embedding_image = base64.b64encode(image_data).decode('utf-8')
-            get_image_time = '{}s'.format(round(time.time() - url_start_time, 2))
-            print('get_image_time: {}'.format(get_image_time))
+            # url_start_time = time.time()
+            # response = requests.get(pre_embedding_image_url)
+            # image_data = response.content
+            # pre_embedding_image = base64.b64encode(image_data).decode('utf-8')
+            # get_image_time = '{}s'.format(round(time.time() - url_start_time, 2))
+            # print('get_image_time: {}'.format(get_image_time))
+            pre_embedding_image = pre_embedding_image_url
         elif pre_embedding_image_raw:
             pre_embedding_image = pre_embedding_image_raw
         else:
@@ -63,7 +62,7 @@ def adapt_query(cache_data_convert, *args, **kwargs):
     if cache_enable:
         if pre_multi_type == 'IMG_TEXT':
             embedding_data_resp = time_cal(
-                chat_cache.embedding_concurrent_func,
+                chat_cache.embedding_func,
                 func_name="iat_embedding",
                 report_func=chat_cache.report.embedding,
             )(data_dict)
@@ -76,10 +75,15 @@ def adapt_query(cache_data_convert, *args, **kwargs):
         image_embeddings = embedding_data_resp['image_embedding']
         text_embeddings = embedding_data_resp['text_embeddings']
 
+        print('image_embeddings: {}'.format(image_embeddings))
+        print('image_embeddings_len: {}'.format(len(image_embeddings)))
+        print('text_embeddings: {}'.format(text_embeddings))
+        print('text_embeddings_len: {}'.format(len(text_embeddings)))
+
         if len(image_embeddings) > 0 and len(image_embeddings) > 0:
-            image_embedding = np.array(image_embeddings[0])
-            text_embedding = np.array(text_embeddings[0])
-            embedding_data = np.concatenate((image_embedding, text_embedding))
+            # image_embedding = np.array(image_embeddings[0])
+            # text_embedding = np.array(text_embeddings[0])
+            embedding_data = np.concatenate((image_embeddings, text_embeddings))
             mm_type = 'mm'
         elif len(image_embeddings) > 0:
             image_embedding = np.array(image_embeddings[0])
