@@ -30,10 +30,12 @@ def adapt_query(cache_data_convert, *args, **kwargs):
             report_func=chat_cache.report.embedding,
         )(pre_embedding_data)
 
+        # print('embedding_data: {}'.format(embedding_data))
+
     if cache_enable:
         cache_data_list = time_cal(
             chat_cache.data_manager.search,
-            func_name="milvus_search",
+            func_name="vector_search",
             report_func=chat_cache.report.search,
         )(
             embedding_data,
@@ -41,6 +43,7 @@ def adapt_query(cache_data_convert, *args, **kwargs):
             top_k=kwargs.pop("top_k", -1),
             model=model
         )
+        print('cache_data_list: {}'.format(cache_data_list))
         cache_answers = []
         cache_questions = []
         cache_ids = []
@@ -78,8 +81,8 @@ def adapt_query(cache_data_convert, *args, **kwargs):
             return
 
         for cache_data in cache_data_list:
+            print('cache_data: {}'.format(cache_data))
             primary_id = cache_data[1]
-            start_time = time.time()
             ret = chat_cache.data_manager.get_scalar_data(
                 cache_data, extra_param=context.get("get_scalar_data", None)
             )

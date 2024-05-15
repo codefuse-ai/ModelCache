@@ -95,6 +95,10 @@ class CacheStorage(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def batch_insert(self, all_data: List[CacheData]):
+        pass
+
+    @abstractmethod
     def insert_query_resp(self, query_resp, **kwargs):
         pass
 
