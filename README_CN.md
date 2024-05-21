@@ -37,16 +37,21 @@ Codefuse-ModelCache 是一个开源的大模型语义缓存系统，通过缓存
 - flask4modelcache_demo.py 为快速测试服务，内嵌了sqlite和faiss，用户无需关心数据库相关事宜。
 - flask4modelcache.py 为正常服务，需用户具备mysql和milvus等数据库服务。
 ### 环境依赖
-
 - python版本: 3.8及以上
 - 依赖包安装：
 ```shell
-pip install requirements.txt 
+pip install -r requirements.txt 
 ```
 ### 服务启动
 #### Demo服务启动
 - 离线模型bin文件下载， 参考地址：[https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main)，并将下载的bin文件，放到 model/text2vec-base-chinese 文件夹中。
-- 执行flask4modelcache_demo.py脚本即可启动。
+- 执行flask4modelcache_demo.py启动服务。
+```shell
+cd CodeFuse-ModelCache
+```
+```shell
+python flask4modelcache_demo.py
+```
 
 #### 正常服务启动
 在启动服务前，应该进行如下环境配置：
