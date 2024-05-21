@@ -55,11 +55,11 @@ python flask4modelcache_demo.py
 
 #### Normal Service Startup
 Before starting the service, the following environment configurations should be performed:
-1. Install the relational database MySQL and import the SQL file to create the data tables. The SQL file can be found at: reference_doc/create_table.sql
+1. Install the relational database MySQL and import the SQL file to create the data tables. The SQL file can be found at: ```reference_doc/create_table.sql```
 2. Install the vector database Milvus.
 3. Add the database access information to the configuration files: 
-   1. modelcache/config/milvus_config.ini 
-   2. modelcache/config/mysql_config.ini
+   1. ```modelcache/config/milvus_config.ini ```
+   2. ```modelcache/config/mysql_config.ini```
 4. Download the embedding model bin file from the following address: [https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place the downloaded bin file in the model/text2vec-base-chinese folder.
 5. Start the backend service using the flask4modelcache.py script.
 ## Service-Access

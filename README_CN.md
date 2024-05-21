@@ -55,11 +55,11 @@ python flask4modelcache_demo.py
 
 #### 正常服务启动
 在启动服务前，应该进行如下环境配置：
-1. 安装关系数据库 mysql， 导入sql创建数据表，sql文件: reference_doc/create_table.sql
+1. 安装关系数据库 mysql， 导入sql创建数据表，sql文件:```reference_doc/create_table.sql```
 2. 安装向量数据库milvus
 3. 在配置文件中添加数据库访问信息，配置文件为：
-   1. modelcache/config/milvus_config.ini
-   2. modelcache/config/mysql_config.ini
+   1. ```modelcache/config/milvus_config.ini```
+   2. ```modelcache/config/mysql_config.ini```
 4. 离线模型bin文件下载， 参考地址：[https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main)，并将下载的bin文件，放到 model/text2vec-base-chinese 文件夹中
 5. 通过flask4modelcache.py脚本启动后端服务。
 ## 服务访问
