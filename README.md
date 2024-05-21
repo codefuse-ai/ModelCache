@@ -40,12 +40,18 @@ The project's startup scripts are divided into flask4modelcache.py and flask4mod
 - Python version: 3.8 and above
 - Package Installation
 ```shell
-pip install requirements.txt 
+pip install -r requirements.txt 
 ```
 ### Service Startup
 #### Demo Service Startup
 1. Download the embedding model bin file from the following address: [https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place the downloaded bin file in the model/text2vec-base-chinese folder.
 2. Start the backend service using the flask4modelcache_dome.py script.
+```shell
+cd CodeFuse-ModelCache
+```
+```shell
+python flask4modelcache_demo.py
+```
 
 #### Normal Service Startup
 Before starting the service, the following environment configurations should be performed:
