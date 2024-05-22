@@ -34,7 +34,7 @@ class DataManager(metaclass=ABCMeta):
     @abstractmethod
     def import_data(
         self, texts: List[Any], image_urls: List[Any], image_ids: List[Any], answers: List[Answer],
-            embeddings: List[Any], model: Any, iat_type: Any
+            embeddings: List[Any], model: Any, mm_type: Any
     ):
         pass
 
@@ -96,7 +96,7 @@ class MapDataManager(DataManager):
 
     def import_data(
         self, texts: List[Any], image_urls: List[Any], image_ids: List[Any], answers: List[Answer],
-            embeddings: List[Any], model: Any, iat_type: Any
+            embeddings: List[Any], model: Any, mm_type: Any
     ):
         pass
 

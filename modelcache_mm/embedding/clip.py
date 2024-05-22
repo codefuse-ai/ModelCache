@@ -18,8 +18,8 @@ class ClipAudio(BaseEmbedding):
         text_list = data_dict['text']
         image_data = data_dict['image']
 
-        img_data = None
-        txt_data = None
+        # img_data = None
+        # txt_data = None
 
         if image_data:
             input_img = load_image(image_data)
@@ -46,8 +46,4 @@ class ClipAudio(BaseEmbedding):
 
     @property
     def dimension(self):
-        """Embedding dimension.
-
-        :return: embedding dimension
-        """
         return self.__dimension

@@ -47,37 +47,36 @@ def adapt_query(cache_data_convert, *args, **kwargs):
     else:
         raise MultiTypeError
 
-    embedding_data = None
-    mm_type = None
-    if cache_enable:
-        if pre_multi_type == 'IMG_TEXT':
-            embedding_data_resp = time_cal(
-                chat_cache.embedding_func,
-                func_name="iat_embedding",
-                report_func=chat_cache.report.embedding,
-            )(data_dict)
-        else:
-            embedding_data_resp = time_cal(
-                chat_cache.embedding_func,
-                func_name="iat_embedding",
-                report_func=chat_cache.report.embedding,
-            )(data_dict)
-        image_embeddings = embedding_data_resp['image_embedding']
-        text_embeddings = embedding_data_resp['text_embeddings']
+    # embedding_data = None
+    # mm_type = None
+    if pre_multi_type == 'IMG_TEXT':
+        embedding_data_resp = time_cal(
+            chat_cache.embedding_func,
+            func_name="mm_embedding",
+            report_func=chat_cache.report.embedding,
+        )(data_dict)
+    else:
+        embedding_data_resp = time_cal(
+            chat_cache.embedding_func,
+            func_name="mm_embedding",
+            report_func=chat_cache.report.embedding,
+        )(data_dict)
+    image_embeddings = embedding_data_resp['image_embedding']
+    text_embeddings = embedding_data_resp['text_embeddings']
 
-        if len(image_embeddings) > 0 and len(image_embeddings) > 0:
-            embedding_data = np.concatenate((image_embeddings, text_embeddings))
-            mm_type = 'mm'
-        elif len(image_embeddings) > 0:
-            image_embedding = np.array(image_embeddings[0])
-            embedding_data = image_embedding
-            mm_type = 'image'
-        elif len(text_embeddings) > 0:
-            text_embedding = np.array(text_embeddings[0])
-            embedding_data = text_embedding
-            mm_type = 'text'
-        else:
-            raise ValueError('maya embedding service return both empty list, please check!')
+    if len(image_embeddings) > 0 and len(image_embeddings) > 0:
+        embedding_data = np.concatenate((image_embeddings, text_embeddings))
+        # mm_type = 'mm'
+    elif len(image_embeddings) > 0:
+        image_embedding = np.array(image_embeddings[0])
+        embedding_data = image_embedding
+        # mm_type = 'image'
+    elif len(text_embeddings) > 0:
+        text_embedding = np.array(text_embeddings[0])
+        embedding_data = text_embedding
+        # mm_type = 'text'
+    else:
+        raise ValueError('maya embedding service return both empty list, please check!')
 
     if cache_enable:
         cache_data_list = time_cal(
