@@ -14,11 +14,11 @@ def mean_pooling(model_output, attention_mask):
 
 
 class Data2VecAudio(BaseEmbedding):
-    def __init__(self, model: str = "sentence-transformers/all-MiniLM-L6-v2"):
+    def __init__(self, model: str = "model/text2vec-base-chinese/"):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         parent_dir = os.path.dirname(current_dir)
         model_dir = os.path.dirname(parent_dir)
-        model = os.path.join(model_dir, 'model/text2vec-base-chinese/')
+        model = os.path.join(model_dir, model)
 
         try:
             self.__dimension = self.model.config.hidden_size
