@@ -34,7 +34,10 @@ class Faiss(VectorBase):
         return list(zip(dist[0], ids))
 
     def rebuild_col(self, ids=None):
-        return True
+        try:
+            self._index.reset()
+        except Exception as e:
+            return f"An error occurred during index rebuild: {e}"
 
     def rebuild(self, ids=None):
         return True
