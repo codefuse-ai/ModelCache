@@ -16,7 +16,6 @@ class SQLStorage(CacheStorage):
         db_type: str = "mysql",
         config=None
     ):
-
         self.host = config.get('mysql', 'host')
         self.port = int(config.get('mysql', 'port'))
         self.username = config.get('mysql', 'username')
