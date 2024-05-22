@@ -2,7 +2,7 @@
 
 
 def get_index_name(model):
-    return 'modelcache' + '_' + model
+    return 'multicache' + '_' + model
 
 
 def get_index_prefix(model):
@@ -18,7 +18,7 @@ def get_mm_index_name(model, mm_type):
         mm_type = 'image'
     elif mm_type == 'TEXT':
         mm_type = 'text'
-    return 'llms_cache' + '_' + model + '_' + mm_type
+    return 'multi_cache' + '_' + model + '_' + mm_type
 
 
 def get_mm_index_prefix(model, mm_type):
