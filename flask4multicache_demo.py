@@ -3,15 +3,15 @@ import time
 from flask import Flask, request
 import logging
 import json
-from modelcache import cache
-from modelcache.adapter import adapter
-from modelcache.manager import CacheBase, VectorBase, get_data_manager
-from modelcache.similarity_evaluation.distance import SearchDistanceEvaluation
-from modelcache.processor.pre import query_multi_splicing
-from modelcache.processor.pre import insert_multi_splicing
 from concurrent.futures import ThreadPoolExecutor
-from modelcache.utils.model_filter import model_blacklist_filter
-from modelcache.embedding import Data2VecAudio
+from modelcache_mm import cache
+from modelcache_mm.adapter import adapter
+from modelcache_mm.manager import CacheBase, VectorBase, get_data_manager
+from modelcache_mm.similarity_evaluation.distance import SearchDistanceEvaluation
+# from modelcache.processor.pre import query_multi_splicing
+# from modelcache.processor.pre import insert_multi_splicing
+# from modelcache.utils.model_filter import model_blacklist_filter
+# from modelcache.embedding import Data2VecAudio
 from modelcache_mm.processor.pre import mm_insert_dict
 from modelcache_mm.processor.pre import mm_query_dict
 from modelcache_mm.embedding import Clip2Vec
@@ -60,10 +60,10 @@ executor = ThreadPoolExecutor(max_workers=6)
 
 @app.route('/welcome')
 def first_flask():  # 视图函数
-    return 'hello, multicache!'
+    return 'hello, llms_cache!'
 
 
-@app.route('/multicache', methods=['GET', 'POST'])
+@app.route('/llms_cache', methods=['GET', 'POST'])
 def user_backend():
     try:
         if request.method == 'POST':
@@ -104,16 +104,7 @@ def user_backend():
                   "answer": ''}
         return json.dumps(result)
 
-    # model filter
-    # filter_resp = model_blacklist_filter(model, request_type)
-    # if isinstance(filter_resp, dict):
-    #     return json.dumps(filter_resp)
-
     if request_type == 'query':
-        # if UUID:
-        #     try:
-        #         uuid_list = UUID.split('==>')
-        #     except Exception as e:
         try:
             start_time = time.time()
             response = adapter.ChatCompletion.create_query(
@@ -135,16 +126,11 @@ def user_backend():
             delta_time_log = round(time.time() - start_time, 3)
 
             future = executor.submit(save_query_info, result, model, query, delta_time_log)
-            # query_time = round(time.time() - start_time, 2)
         except Exception as e:
             raise e
         return json.dumps(result, ensure_ascii=False)
 
     if request_type == 'insert':
-        # if UUID:
-        #     try:
-        #         uuid_list = UUID.split('==>')
-        #     except Exception as e:
         try:
             start_time = time.time()
             try:
