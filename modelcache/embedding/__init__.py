@@ -12,7 +12,7 @@ def Huggingface(model="sentence-transformers/all-mpnet-base-v2"):
     return huggingface.Huggingface(model)
 
 
-def Data2VecAudio(model="facebook/data2vec-audio-base-960h"):
+def Data2VecAudio(model="model/text2vec-base-chinese/"):
     return data2vec.Data2VecAudio(model)
 
 
