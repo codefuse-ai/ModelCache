@@ -251,11 +251,23 @@ In ModelCache, we adopted the main idea of GPTCache,  includes core modules: ada
    - Asynchronous log write-back capability for data analysis and statistics. 
    - Added model field and data statistics field for feature expansion.
 
-Future Features Under Development: 
+## Todo List
+### Adapter
+- [ ] Register adapter for Milvus：Based on the "model" parameter in the scope, initialize the corresponding Collection and perform the load operation.
+### Embedding model&inference
+- [ ] Inference Optimization: Optimizing the speed of embedding inference, compatible with inference engines such as FasterTransformer, TurboTransformers, and ByteTransformer.
+- [ ] Compatibility with Hugging Face models and ModelScope models, offering more methods for model loading.
+### Scalar Storage
+- [ ] Support MongoDB
+- [ ] Support ElasticSearch
+### Vector Storage
+- [ ] Adapts Faiss storage in multimodal scenarios.
+### Rank能力
+- [ ] Add ranking model to refine the order of data after embedding recall.
+### Service
+- [ ] Supports FastAPI.
+- [ ] Add visual interface to offer a more direct user experience.
 
-- [ ] Data isolation based on hyperparameters. 
-- [ ] System prompt partitioning storage capability to enhance accuracy and efficiency of similarity matching.
-- [ ] More versatile embedding models and similarity evaluation algorithms.
 ## Acknowledgements
 This project has referenced the following open-source projects. We would like to express our gratitude to the projects and their developers for their contributions and research.<br />[GPTCache](https://github.com/zilliztech/GPTCache)
 
