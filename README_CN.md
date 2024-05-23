@@ -253,19 +253,19 @@ https://mp.weixin.qq.com/s/ExIRu2o7yvXa6nNLZcCfhQ
 ## Todo List
 ### Adapter
 - [ ] register adapter for Milvus：根据scope中的model参数，初始化对应Collection 并且执行load操作。
-Embedding model&inference
-- [ ] inference优化：优化embedding推理速度，适配fastertransformer, TurboTransformers, ByteTransformer等推理引擎
+### Embedding model&inference
+- [ ] inference优化：优化embedding推理速度，适配fastertransformer, TurboTransformers, ByteTransformer等推理引擎。
 - [ ] 兼容huggingface模型和modelscope模型，提供更多模型加载方式。
 ### Scalar Storage
-- [ ] Support MongoDB
-- [ ] Support ElasticSearch
+- [ ] Support MongoDB。
+- [ ] Support ElasticSearch。
 ### Vector Storage
-- [ ] 在多模态场景中适配faiss存储
-### Rank能力
-- [ ] 增加Rank模型，对embedding召回后的数据，进行精排
+- [ ] 在多模态场景中适配faiss存储。
+### Ranking
+- [ ] 增加Rank模型，对embedding召回后的数据，进行精排。
 ### Service
-- [ ] 支持fastapi
-- [ ] 增加前端界面，用于测试
+- [ ] 支持fastapi。
+- [ ] 增加前端界面，用于测试。
 
 ## 致谢
 本项目参考了以下开源项目，在此对相关项目和研究开发人员表示感谢。<br />[GPTCache](https://github.com/zilliztech/GPTCache)
