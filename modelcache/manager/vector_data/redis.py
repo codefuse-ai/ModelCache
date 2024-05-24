@@ -27,7 +27,7 @@ class RedisVectorStore(VectorBase):
     ):
         if dimension <= 0:
             raise ValueError(
-                f"invalid `dim` param: {dimension} in the Milvus vector store."
+                f"invalid `dim` param: {dimension} in the Redis vector store."
             )
         self._client = Redis(
             host=host, port=int(port), username=username, password=password
@@ -49,7 +49,6 @@ class RedisVectorStore(VectorBase):
 
     def create_index(self, index_name, index_prefix):
         dimension = self.dimension
-        print('dimension: {}'.format(dimension))
         if self._check_index_exists(index_name):
             modelcache_log.info(
                 "The %s already exists, and it will be used directly", index_name
@@ -92,7 +91,6 @@ class RedisVectorStore(VectorBase):
         index_name = get_index_name(model)
         id_field_name = "data_id"
         embedding_field_name = "data_vector"
-
         base_query = f'*=>[KNN 2 @{embedding_field_name} $vector AS distance]'
         query = (
             Query(base_query)

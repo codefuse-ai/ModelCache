@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
+"""
+register index for redis
+"""
 import json
 import requests
 
 
 def run():
     url = 'http://127.0.0.1:5000/modelcache'
-    type = 'query'
+    type = 'register'
     scope = {"model": "CODEGPT-1117"}
-    query = [{"role": "system", "content": "你是一个python助手"}, {"role": "user", "content": "hello"}]
-    data = {'type': type, 'scope': scope, 'query': query}
-
+    data = {'type': type, 'scope': scope}
     headers = {"Content-Type": "application/json"}
     res = requests.post(url, headers=headers, json=json.dumps(data))
     res_text = res.text
-    print('res_text: {}'.format(res_text))
 
 
 if __name__ == '__main__':

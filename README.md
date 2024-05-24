@@ -40,20 +40,26 @@ The project's startup scripts are divided into flask4modelcache.py and flask4mod
 - Python version: 3.8 and above
 - Package Installation
 ```shell
-pip install requirements.txt 
+pip install -r requirements.txt 
 ```
 ### Service Startup
 #### Demo Service Startup
 1. Download the embedding model bin file from the following address: [https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place the downloaded bin file in the model/text2vec-base-chinese folder.
 2. Start the backend service using the flask4modelcache_dome.py script.
+```shell
+cd CodeFuse-ModelCache
+```
+```shell
+python flask4modelcache_demo.py
+```
 
 #### Normal Service Startup
 Before starting the service, the following environment configurations should be performed:
-1. Install the relational database MySQL and import the SQL file to create the data tables. The SQL file can be found at: reference_doc/create_table.sql
+1. Install the relational database MySQL and import the SQL file to create the data tables. The SQL file can be found at: ```reference_doc/create_table.sql```
 2. Install the vector database Milvus.
 3. Add the database access information to the configuration files: 
-   1. modelcache/config/milvus_config.ini 
-   2. modelcache/config/mysql_config.ini
+   1. ```modelcache/config/milvus_config.ini ```
+   2. ```modelcache/config/mysql_config.ini```
 4. Download the embedding model bin file from the following address: [https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place the downloaded bin file in the model/text2vec-base-chinese folder.
 5. Start the backend service using the flask4modelcache.py script.
 ## Service-Access
@@ -245,11 +251,23 @@ In ModelCache, we adopted the main idea of GPTCache,  includes core modules: ada
    - Asynchronous log write-back capability for data analysis and statistics. 
    - Added model field and data statistics field for feature expansion.
 
-Future Features Under Development: 
+## Todo List
+### Adapter
+- [ ] Register adapter for Milvus：Based on the "model" parameter in the scope, initialize the corresponding Collection and perform the load operation.
+### Embedding model&inference
+- [ ] Inference Optimization: Optimizing the speed of embedding inference, compatible with inference engines such as FasterTransformer, TurboTransformers, and ByteTransformer.
+- [ ] Compatibility with Hugging Face models and ModelScope models, offering more methods for model loading.
+### Scalar Storage
+- [ ] Support MongoDB
+- [ ] Support ElasticSearch
+### Vector Storage
+- [ ] Adapts Faiss storage in multimodal scenarios.
+### Rank能力
+- [ ] Add ranking model to refine the order of data after embedding recall.
+### Service
+- [ ] Supports FastAPI.
+- [ ] Add visual interface to offer a more direct user experience.
 
-- [ ] Data isolation based on hyperparameters. 
-- [ ] System prompt partitioning storage capability to enhance accuracy and efficiency of similarity matching.
-- [ ] More versatile embedding models and similarity evaluation algorithms.
 ## Acknowledgements
 This project has referenced the following open-source projects. We would like to express our gratitude to the projects and their developers for their contributions and research.<br />[GPTCache](https://github.com/zilliztech/GPTCache)
 

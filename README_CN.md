@@ -37,24 +37,29 @@ Codefuse-ModelCache 是一个开源的大模型语义缓存系统，通过缓存
 - flask4modelcache_demo.py 为快速测试服务，内嵌了sqlite和faiss，用户无需关心数据库相关事宜。
 - flask4modelcache.py 为正常服务，需用户具备mysql和milvus等数据库服务。
 ### 环境依赖
-
 - python版本: 3.8及以上
 - 依赖包安装：
 ```shell
-pip install requirements.txt 
+pip install -r requirements.txt 
 ```
 ### 服务启动
 #### Demo服务启动
 - 离线模型bin文件下载， 参考地址：[https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main)，并将下载的bin文件，放到 model/text2vec-base-chinese 文件夹中。
-- 执行flask4modelcache_demo.py脚本即可启动。
+- 执行flask4modelcache_demo.py启动服务。
+```shell
+cd CodeFuse-ModelCache
+```
+```shell
+python flask4modelcache_demo.py
+```
 
 #### 正常服务启动
 在启动服务前，应该进行如下环境配置：
-1. 安装关系数据库 mysql， 导入sql创建数据表，sql文件: reference_doc/create_table.sql
+1. 安装关系数据库 mysql， 导入sql创建数据表，sql文件:```reference_doc/create_table.sql```
 2. 安装向量数据库milvus
 3. 在配置文件中添加数据库访问信息，配置文件为：
-   1. modelcache/config/milvus_config.ini
-   2. modelcache/config/mysql_config.ini
+   1. ```modelcache/config/milvus_config.ini```
+   2. ```modelcache/config/mysql_config.ini```
 4. 离线模型bin文件下载， 参考地址：[https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main)，并将下载的bin文件，放到 model/text2vec-base-chinese 文件夹中
 5. 通过flask4modelcache.py脚本启动后端服务。
 ## 服务访问
@@ -245,11 +250,23 @@ https://mp.weixin.qq.com/s/ExIRu2o7yvXa6nNLZcCfhQ
    - 异步日志回写能力，用于数据分析和统计
    - 增加model字段和数据统计字段，用于功能拓展。
 
-未来会持续建设的功能：
+## Todo List
+### Adapter
+- [ ] register adapter for Milvus：根据scope中的model参数，初始化对应Collection 并且执行load操作。
+### Embedding model&inference
+- [ ] inference优化：优化embedding推理速度，适配fastertransformer, TurboTransformers, ByteTransformer等推理引擎。
+- [ ] 兼容huggingface模型和modelscope模型，提供更多模型加载方式。
+### Scalar Storage
+- [ ] Support MongoDB。
+- [ ] Support ElasticSearch。
+### Vector Storage
+- [ ] 在多模态场景中适配faiss存储。
+### Ranking
+- [ ] 增加Rank模型，对embedding召回后的数据，进行精排。
+### Service
+- [ ] 支持fastapi。
+- [ ] 增加前端界面，用于测试。
 
-- [ ] 基于超参数的数据隔离
-- [ ] system promt分区存储能力，以提高相似度匹配的准确度和效率
-- [ ] 更通用的embedding模型和相似度评估算法
 ## 致谢
 本项目参考了以下开源项目，在此对相关项目和研究开发人员表示感谢。<br />[GPTCache](https://github.com/zilliztech/GPTCache)
 

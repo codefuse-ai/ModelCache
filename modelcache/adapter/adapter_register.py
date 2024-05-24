@@ -9,5 +9,4 @@ def adapt_register(*args, **kwargs):
         return ValueError('')
 
     register_resp = chat_cache.data_manager.create_index(model)
-    print('register_resp: {}'.format(register_resp))
     return register_resp
