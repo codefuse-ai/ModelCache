@@ -260,10 +260,15 @@ class SQLStorage(CacheStorage):
     def model_deleted(self, model_name):
         table_name = "modelcache_llm_answer"
         delete_sql = "Delete from {} WHERE model='{}'".format(table_name, model_name)
+
+        table_log_name = "modelcache_query_log"
+        delete_log_sql = "Delete from {} WHERE model='{}'".format(table_log_name, model_name)
         conn = sqlite3.connect(self._url)
         try:
             cursor = conn.cursor()
             resp = cursor.execute(delete_sql)
+            conn.commit()
+            resp = cursor.execute(delete_log_sql)
             conn.commit()
             cursor.close()
             conn.close()

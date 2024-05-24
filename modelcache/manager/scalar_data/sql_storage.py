@@ -149,6 +149,10 @@ class SQLStorage(CacheStorage):
     def model_deleted(self, model_name):
         table_name = "cache_codegpt_answer"
         delete_sql = "Delete from {} WHERE model='{}'".format(table_name, model_name)
+
+        table_log_name = "modelcache_query_log"
+        delete_log_sql = "Delete from {} WHERE model='{}'".format(table_log_name, model_name)
+
         conn = self.pool.connection()
         # 使用连接执行删除数据操作
         try:
@@ -156,6 +160,9 @@ class SQLStorage(CacheStorage):
                 # 执行删除数据操作
                 resp = cursor.execute(delete_sql)
                 conn.commit()
+                # 执行删除该模型对应日志操作 resp_log行数不返回
+                resp_log = cursor.execute(delete_log_sql) 
+                conn.commit()  # 分别提交事务
         finally:
             # 关闭连接，将连接返回给连接池
             conn.close()
