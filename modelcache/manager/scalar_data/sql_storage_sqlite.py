@@ -168,6 +168,9 @@ class SQLStorage(CacheStorage):
     def model_deleted(self, model_name):
         table_name = "modelcache_llm_answer"
         delete_sql = "Delete from {} WHERE model=?".format(table_name)
+
+        table_log_name = "modelcache_query_log"
+        delete_log_sql = "Delete from {} WHERE model=?".format(table_log_name)
         conn = sqlite3.connect(self._url)
         try:
             cursor = conn.cursor()
@@ -175,6 +178,9 @@ class SQLStorage(CacheStorage):
             conn.commit()
             # get delete rows
             deleted_rows_count = cursor.rowcount
+            
+            cursor.execute(delete_log_sql, (model_name,))
+            conn.commit()
             cursor.close()
         except sqlite3.Error as e:
             print(f"SQLite error: {e}")
