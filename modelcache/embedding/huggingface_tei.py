@@ -3,7 +3,7 @@ import requests
 import numpy as np
 from modelcache.embedding.base import BaseEmbedding
 
-class TextEmbeddingsInference(BaseEmbedding):
+class HuggingfaceTEI(BaseEmbedding):
     def __init__(self, base_url: str, model: str):
         self.base_url = base_url
         self.model = model
@@ -12,6 +12,7 @@ class TextEmbeddingsInference(BaseEmbedding):
             'Content-Type': 'application/json',
         }
         self.__dimension = self.to_embeddings('test').shape[0]
+
     def to_embeddings(self, data, **_):
         json_data = {
             'input': data,
