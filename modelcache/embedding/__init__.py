@@ -32,5 +32,5 @@ def PaddleNLP(model="ernie-3.0-medium-zh"):
 def Timm(model="resnet50", device="default"):
     return timm.Timm(model, device)
 
-def TextEmbeddingsInference(base_url, model):
+def HuggingfaceTEI(base_url, model):
     return huggingface_tei.HuggingfaceTEI(base_url, model)
