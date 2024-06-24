@@ -1,4 +1,4 @@
-CREATE TABLE `modelcache_llm_answer` (
+CREATE TABLE `cache_codegpt_answer` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '修改时间',
@@ -8,8 +8,9 @@ CREATE TABLE `modelcache_llm_answer` (
   `hit_count` int(11) NOT NULL DEFAULT '0' comment 'hit_count',
   `model` varchar(1000) NOT NULL comment 'model',
   `embedding_data` blob NOT NULL comment 'embedding_data',
+  `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'delete state(0 Not deleted,-1 deleted)',
   PRIMARY KEY(`id`)
-) AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COMMENT = 'modelcache_llm_answer';
+) AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COMMENT = 'cache_codegpt_answer';
 
 
 CREATE TABLE `modelcache_query_log` (
