@@ -1,21 +1,5 @@
 # -*- coding: utf-8 -*-
 from typing import List
-<<<<<<< HEAD
-
-import numpy as np
-from modelcache.manager.vector_data.base import VectorBase, VectorData
-from modelcache.utils import import_redis
-from redis.commands.search.query import Query
-from redis.commands.search.indexDefinition import IndexDefinition, IndexType
-from modelcache.utils.log import modelcache_log
-
-import_redis()
-#
-# from redis.commands.search.indexDefinition import IndexDefinition, IndexType
-# from redis.commands.search.query import Query
-# from redis.commands.search.field import TagField, VectorField
-# from redis.client import Redis
-=======
 import numpy as np
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 from redis.commands.search.query import Query
@@ -28,7 +12,6 @@ from modelcache.utils.log import modelcache_log
 from modelcache.utils.index_util import get_index_name
 from modelcache.utils.index_util import get_index_prefix
 import_redis()
->>>>>>> main
 
 
 class RedisVectorStore(VectorBase):
@@ -39,12 +22,6 @@ class RedisVectorStore(VectorBase):
         username: str = "",
         password: str = "",
         dimension: int = 0,
-<<<<<<< HEAD
-        collection_name: str = "gptcache",
-        top_k: int = 1,
-        namespace: str = "",
-    ):
-=======
         top_k: int = 1,
         namespace: str = "",
     ):
@@ -52,90 +29,18 @@ class RedisVectorStore(VectorBase):
             raise ValueError(
                 f"invalid `dim` param: {dimension} in the Redis vector store."
             )
->>>>>>> main
         self._client = Redis(
             host=host, port=int(port), username=username, password=password
         )
         self.top_k = top_k
         self.dimension = dimension
-<<<<<<< HEAD
-        self.collection_name = collection_name
-        self.namespace = namespace
-        self.doc_prefix = f"{self.namespace}doc:"  # Prefix with the specified namespace
-        self._create_collection(collection_name)
-=======
         self.namespace = namespace
         self.doc_prefix = f"{self.namespace}doc:"
->>>>>>> main
 
     def _check_index_exists(self, index_name: str) -> bool:
         """Check if Redis index exists."""
         try:
             self._client.ft(index_name).info()
-<<<<<<< HEAD
-        except:  # pylint: disable=W0702
-            gptcache_log.info("Index does not exist")
-            return False
-        gptcache_log.info("Index already exists")
-        return True
-
-    def _create_collection(self, collection_name):
-        if self._check_index_exists(collection_name):
-            gptcache_log.info(
-                "The %s already exists, and it will be used directly", collection_name
-            )
-        else:
-            schema = (
-                TagField("tag"),  # Tag Field Name
-                VectorField(
-                    "vector",  # Vector Field Name
-                    "FLAT",
-                    {  # Vector Index Type: FLAT or HNSW
-                        "TYPE": "FLOAT32",  # FLOAT32 or FLOAT64
-                        "DIM": self.dimension,  # Number of Vector Dimensions
-                        "DISTANCE_METRIC": "COSINE",  # Vector Search Distance Metric
-                    },
-                ),
-            )
-            definition = IndexDefinition(
-                prefix=[self.doc_prefix], index_type=IndexType.HASH
-            )
-
-            # create Index
-            self._client.ft(collection_name).create_index(
-                fields=schema, definition=definition
-            )
-
-    def mul_add(self, datas: List[VectorData]):
-        pipe = self._client.pipeline()
-
-        for data in datas:
-            key: int = data.id
-            obj = {
-                "vector": data.data.astype(np.float32).tobytes(),
-            }
-            pipe.hset(f"{self.doc_prefix}{key}", mapping=obj)
-
-        pipe.execute()
-
-    def search(self, data: np.ndarray, top_k: int = -1):
-        query = (
-            Query(
-                f"*=>[KNN {top_k if top_k > 0 else self.top_k} @vector $vec as score]"
-            )
-            .sort_by("score")
-            .return_fields("id", "score")
-            .paging(0, top_k if top_k > 0 else self.top_k)
-            .dialect(2)
-        )
-        query_params = {"vec": data.astype(np.float32).tobytes()}
-        results = (
-            self._client.ft(self.collection_name)
-            .search(query, query_params=query_params)
-            .docs
-        )
-        return [(float(result.score), int(result.id[len(self.doc_prefix):])) for result in results]
-=======
         except:
             modelcache_log.info("Index does not exist")
             return False
@@ -201,13 +106,10 @@ class RedisVectorStore(VectorBase):
             .docs
         )
         return [(float(result.distance), int(getattr(result, id_field_name))) for result in results]
->>>>>>> main
 
     def rebuild(self, ids=None) -> bool:
         pass
 
-<<<<<<< HEAD
-=======
     def rebuild_col(self, model):
         index_name_model = get_index_name(model)
         if self._check_index_exists(index_name_model):
@@ -222,14 +124,10 @@ class RedisVectorStore(VectorBase):
             raise ValueError(str(e))
         # return 'rebuild success'
 
->>>>>>> main
     def delete(self, ids) -> None:
         pipe = self._client.pipeline()
         for data_id in ids:
             pipe.delete(f"{self.doc_prefix}{data_id}")
-<<<<<<< HEAD
-        pipe.execute()
-=======
         pipe.execute()
 
     def create(self, model=None):
@@ -239,4 +137,3 @@ class RedisVectorStore(VectorBase):
 
     def get_index_by_name(self, index_name):
         pass
->>>>>>> main

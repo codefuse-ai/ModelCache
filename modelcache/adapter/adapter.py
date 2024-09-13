@@ -24,18 +24,13 @@ class ChatCompletion(object):
 
     @classmethod
     def create_insert(cls, *args, **kwargs):
-        # try:
-        #     return adapt_insert(
-        #         *args,
-        #         **kwargs
-        #     )
-        # except Exception as e:
-        #     return str(e)
-
-        return adapt_insert(
-            *args,
-            **kwargs
-        )
+        try:
+            return adapt_insert(
+                *args,
+                **kwargs
+            )
+        except Exception as e:
+            return str(e)
 
     @classmethod
     def create_remove(cls, *args, **kwargs):
