@@ -1,6 +1,6 @@
 <div align="center">
 <h1>
-Codefuse-ModelCache
+ModelCache
 </h1>
 </div>
 

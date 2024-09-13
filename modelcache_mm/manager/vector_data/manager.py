@@ -98,36 +98,15 @@ class VectorBase:
                 t_dimension=t_dimension,
             )
         elif name == "faiss":
-            from modelcache.manager.vector_data.faiss import Faiss
-
+            from modelcache_mm.manager.vector_data.faiss import Faiss
             dimension = kwargs.get("dimension", DIMENSION)
+            VectorBase.check_dimension(dimension)
+
             index_path = kwargs.pop("index_path", FAISS_INDEX_PATH)
-            VectorBase.check_dimension(dimension)
             vector_base = Faiss(
-                index_file_path=index_path, dimension=dimension, top_k=top_k
-            )
-        elif name == "chromadb":
-            from modelcache.manager.vector_data.chroma import Chromadb
-
-            client_settings = kwargs.get("client_settings", None)
-            persist_directory = kwargs.get("persist_directory", None)
-            collection_name = kwargs.get("collection_name", COLLECTION_NAME)
-            vector_base = Chromadb(
-                client_settings=client_settings,
-                persist_directory=persist_directory,
-                collection_name=collection_name,
-                top_k=top_k,
-            )
-        elif name == "hnswlib":
-            from modelcache.manager.vector_data.hnswlib_store import Hnswlib
-
-            dimension = kwargs.get("dimension", DIMENSION)
-            index_path = kwargs.pop("index_path", "./hnswlib_index.bin")
-            max_elements = kwargs.pop("max_elements", 100000)
-            VectorBase.check_dimension(dimension)
-            vector_base = Hnswlib(
-                index_file_path=index_path, dimension=dimension,
-                top_k=top_k, max_elements=max_elements
+                index_file_path=index_path,
+                dimension=dimension,
+                top_k=top_k
             )
         else:
             raise NotFoundError("vector store", name)
