@@ -22,14 +22,12 @@ def adapt_query(cache_data_convert, *args, **kwargs):
         extra_param=context.get("pre_embedding_func", None),
         prompts=chat_cache.config.prompts,
     )
-
     if cache_enable:
         embedding_data = time_cal(
             chat_cache.embedding_func,
             func_name="embedding",
             report_func=chat_cache.report.embedding,
         )(pre_embedding_data)
-
     if cache_enable:
         cache_data_list = time_cal(
             chat_cache.data_manager.search,
@@ -64,7 +62,6 @@ def adapt_query(cache_data_convert, *args, **kwargs):
             if rank_threshold_long < min_rank
             else rank_threshold_long
         )
-
         if cache_data_list is None or len(cache_data_list) == 0:
             rank_pre = -1.0
         else:

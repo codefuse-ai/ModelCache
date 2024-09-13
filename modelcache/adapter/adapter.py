@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
-
-import openai
 from modelcache.adapter.adapter_query import adapt_query
 from modelcache.adapter.adapter_insert import adapt_insert
 from modelcache.adapter.adapter_remove import adapt_remove
 from modelcache.adapter.adapter_register import adapt_register
 
 
-class ChatCompletion(openai.ChatCompletion):
+class ChatCompletion(object):
     """Openai ChatCompletion Wrapper"""
 
     @classmethod
