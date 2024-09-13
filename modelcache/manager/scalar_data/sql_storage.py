@@ -127,7 +127,7 @@ class SQLStorage(CacheStorage):
             conn.close()
 
     def get_ids(self, deleted=True):
-        table_name = "cache_codegpt_answer"
+        table_name = "modelcache_llm_answer"
         state = 1 if deleted else 0
         query_sql = "Select id FROM {} WHERE is_deleted = {}".format(table_name, state)
         
@@ -142,7 +142,7 @@ class SQLStorage(CacheStorage):
         return ids
 
     def mark_deleted(self, keys):
-        table_name = "cache_codegpt_answer"
+        table_name = "modelcache_llm_answer"
         mark_sql = " update {} set is_deleted=1 WHERE id in ({})".format(table_name, ",".join([str(i) for i in keys]))
 
         # 从连接池中获取连接
@@ -159,7 +159,7 @@ class SQLStorage(CacheStorage):
         return delete_count
 
     def model_deleted(self, model_name):
-        table_name = "cache_codegpt_answer"
+        table_name = "modelcache_llm_answer"
         delete_sql = "Delete from {} WHERE model='{}'".format(table_name, model_name)
 
         table_log_name = "modelcache_query_log"
@@ -181,7 +181,7 @@ class SQLStorage(CacheStorage):
         return resp
 
     def clear_deleted_data(self):
-        table_name = "cache_codegpt_answer"
+        table_name = "modelcache_llm_answer"
         delete_sql = "DELETE FROM {} WHERE is_deleted = 1".format(table_name)
         
         conn = self.pool.connection()
@@ -196,7 +196,7 @@ class SQLStorage(CacheStorage):
         return delete_count
 
     def count(self, state: int = 0, is_all: bool = False):
-        table_name = "cache_codegpt_answer"
+        table_name = "modelcache_llm_answer"
         if is_all:
             count_sql = "SELECT COUNT(*) FROM {}".format(table_name)
         else:
