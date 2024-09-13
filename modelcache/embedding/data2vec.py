@@ -14,23 +14,22 @@ def mean_pooling(model_output, attention_mask):
 
 
 class Data2VecAudio(BaseEmbedding):
-    def __init__(self, model: str = "model/text2vec-base-chinese/"):
+    def __init__(self, model):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         parent_dir = os.path.dirname(current_dir)
         model_dir = os.path.dirname(parent_dir)
-        model = os.path.join(model_dir, model)
+        model_path = os.path.join(model_dir, model)
+
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.tokenizer = BertTokenizer.from_pretrained(model_path, local_files_only=True)
+        self.model = BertModel.from_pretrained(model_path, local_files_only=True)
 
         try:
             self.__dimension = self.model.config.hidden_size
         except Exception:
             from transformers import AutoConfig
-
             config = AutoConfig.from_pretrained(model)
             self.__dimension = config.hidden_size
-
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.tokenizer = BertTokenizer.from_pretrained(model, local_files_only=True)
-        self.model = BertModel.from_pretrained(model, local_files_only=True)
 
     def to_embeddings(self, data, **_):
         encoded_input = self.tokenizer(data, padding=True, truncation=True, return_tensors='pt')

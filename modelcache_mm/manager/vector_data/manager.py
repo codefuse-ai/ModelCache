@@ -2,7 +2,7 @@
 from modelcache_mm.utils.error import NotFoundError, ParamError
 
 TOP_K = 1
-FAISS_INDEX_PATH = "faiss.index"
+FAISS_INDEX_PATH = "mm_faiss.index"
 DIMENSION = 0
 MILVUS_HOST = "localhost"
 MILVUS_PORT = 19530

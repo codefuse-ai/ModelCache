@@ -25,8 +25,6 @@ class Faiss(VectorBase):
         data_array, id_array = map(list, zip(*((data.data, data.id) for data in datas)))
         np_data = np.array(data_array).astype("float32")
         ids = np.array(id_array)
-        print('insert_np_data: {}'.format(np_data))
-        print('insert_np_data: {}'.format(np_data.shape))
         self._index.add_with_ids(np_data, ids)
 
     def search(self, data: np.ndarray, top_k: int, model, mm_type='mm'):
