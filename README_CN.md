@@ -1,6 +1,6 @@
 <div align="center">
 <h1>
-Codefuse-ModelCache
+ModelCache
 </h1>
 </div>
 
@@ -25,6 +25,7 @@ Codefuse-ModelCache
 - [致谢](#致谢)
 - [Contributing](#Contributing)
 ## 新闻
+- 🔥🔥[2024.04.09] 增加了多租户场景中Redis Search存储和检索embedding的能力，可以将Cache和向量数据库的交互耗时降低至10ms内。
 - 🔥🔥[2023.12.10] 增加llmEmb、onnx、paddlenlp、fasttext等LLM embedding框架，并增加timm 图片embedding框架，用于提供更丰富的embedding能力。
 - 🔥🔥[2023.11.20] codefuse-ModelCache增加本地存储能力, 适配了嵌入式数据库sqlite、faiss，方便用户快速启动测试。
 - [2023.10.31] codefuse-ModelCache...
@@ -36,24 +37,29 @@ Codefuse-ModelCache 是一个开源的大模型语义缓存系统，通过缓存
 - flask4modelcache_demo.py 为快速测试服务，内嵌了sqlite和faiss，用户无需关心数据库相关事宜。
 - flask4modelcache.py 为正常服务，需用户具备mysql和milvus等数据库服务。
 ### 环境依赖
-
 - python版本: 3.8及以上
 - 依赖包安装：
 ```shell
-pip install requirements.txt 
+pip install -r requirements.txt 
 ```
 ### 服务启动
 #### Demo服务启动
 - 离线模型bin文件下载， 参考地址：[https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main)，并将下载的bin文件，放到 model/text2vec-base-chinese 文件夹中。
-- 执行flask4modelcache_demo.py脚本即可启动。
+- 执行flask4modelcache_demo.py启动服务。
+```shell
+cd CodeFuse-ModelCache
+```
+```shell
+python flask4modelcache_demo.py
+```
 
 #### 正常服务启动
 在启动服务前，应该进行如下环境配置：
-1. 安装关系数据库 mysql， 导入sql创建数据表，sql文件: reference_doc/create_table.sql
+1. 安装关系数据库 mysql， 导入sql创建数据表，sql文件:```reference_doc/create_table.sql```
 2. 安装向量数据库milvus
 3. 在配置文件中添加数据库访问信息，配置文件为：
-   1. modelcache/config/milvus_config.ini
-   2. modelcache/config/mysql_config.ini
+   1. ```modelcache/config/milvus_config.ini```
+   2. ```modelcache/config/mysql_config.ini```
 4. 离线模型bin文件下载， 参考地址：[https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main)，并将下载的bin文件，放到 model/text2vec-base-chinese 文件夹中
 5. 通过flask4modelcache.py脚本启动后端服务。
 ## 服务访问
@@ -100,7 +106,7 @@ res = requests.post(url, headers=headers, json=json.dumps(data))
 ## 文章
 https://mp.weixin.qq.com/s/ExIRu2o7yvXa6nNLZcCfhQ
 ## 架构大图
-![modelcache modules](docs/modelcache_modules_20231114.png)
+![modelcache modules](docs/modelcache_modules_20240409.png)
 ## 功能对比
 功能方面，为了解决huggingface网络问题并提升推理速度，增加了embedding本地推理能力。鉴于SqlAlchemy框架存在一些限制，我们对关系数据库交互模块进行了重写，以更灵活地实现数据库操作。在实践中，大型模型产品需要与多个用户和多个模型对接，因此在ModelCache中增加了对多租户的支持，同时也初步兼容了系统指令和多轮会话。
 
@@ -244,11 +250,23 @@ https://mp.weixin.qq.com/s/ExIRu2o7yvXa6nNLZcCfhQ
    - 异步日志回写能力，用于数据分析和统计
    - 增加model字段和数据统计字段，用于功能拓展。
 
-未来会持续建设的功能：
+## Todo List
+### Adapter
+- [ ] register adapter for Milvus：根据scope中的model参数，初始化对应Collection 并且执行load操作。
+### Embedding model&inference
+- [ ] inference优化：优化embedding推理速度，适配fastertransformer, TurboTransformers, ByteTransformer等推理引擎。
+- [ ] 兼容huggingface模型和modelscope模型，提供更多模型加载方式。
+### Scalar Storage
+- [ ] Support MongoDB。
+- [ ] Support ElasticSearch。
+### Vector Storage
+- [ ] 在多模态场景中适配faiss存储。
+### Ranking
+- [ ] 增加Rank模型，对embedding召回后的数据，进行精排。
+### Service
+- [ ] 支持fastapi。
+- [ ] 增加前端界面，用于测试。
 
-- [ ] 基于超参数的数据隔离
-- [ ] system promt分区存储能力，以提高相似度匹配的准确度和效率
-- [ ] 更通用的embedding模型和相似度评估算法
 ## 致谢
 本项目参考了以下开源项目，在此对相关项目和研究开发人员表示感谢。<br />[GPTCache](https://github.com/zilliztech/GPTCache)
 

@@ -33,7 +33,7 @@ def adapt_query(cache_data_convert, *args, **kwargs):
     if cache_enable:
         cache_data_list = time_cal(
             chat_cache.data_manager.search,
-            func_name="milvus_search",
+            func_name="vector_search",
             report_func=chat_cache.report.search,
         )(
             embedding_data,
@@ -79,7 +79,6 @@ def adapt_query(cache_data_convert, *args, **kwargs):
 
         for cache_data in cache_data_list:
             primary_id = cache_data[1]
-            start_time = time.time()
             ret = chat_cache.data_manager.get_scalar_data(
                 cache_data, extra_param=context.get("get_scalar_data", None)
             )

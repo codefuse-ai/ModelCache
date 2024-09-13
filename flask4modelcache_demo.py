@@ -117,7 +117,6 @@ def user_backend():
             result = {"errorCode": 202, "errorDesc": e, "cacheHit": False, "delta_time": 0,
                       "hit_query": '', "answer": ''}
             logging.info('result: {}'.format(result))
-
         return json.dumps(result, ensure_ascii=False)
 
     if request_type == 'insert':
@@ -166,4 +165,5 @@ def user_backend():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)

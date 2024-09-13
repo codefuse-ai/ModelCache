@@ -5,6 +5,7 @@ import openai
 from modelcache.adapter.adapter_query import adapt_query
 from modelcache.adapter.adapter_insert import adapt_insert
 from modelcache.adapter.adapter_remove import adapt_remove
+from modelcache.adapter.adapter_register import adapt_register
 
 
 class ChatCompletion(openai.ChatCompletion):
@@ -42,6 +43,16 @@ class ChatCompletion(openai.ChatCompletion):
             )
         except Exception as e:
             logging.info('adapt_remove_e: {}'.format(e))
+            return str(e)
+
+    @classmethod
+    def create_register(cls, *args, **kwargs):
+        try:
+            return adapt_register(
+                *args,
+                **kwargs
+            )
+        except Exception as e:
             return str(e)
 
 

@@ -4,7 +4,7 @@ from typing import Optional, List, Any
 from modelcache.processor.post import first
 from modelcache.similarity_evaluation import ExactMatchEvaluation
 from modelcache.similarity_evaluation import SimilarityEvaluation
-from modelcache.embedding.string import to_embeddings as string_embedding
+from modelcache.embedding.string_text import to_embeddings as string_embedding
 from modelcache.report import Report
 from modelcache.config import Config
 from modelcache.utils.cache_func import cache_all
@@ -19,7 +19,10 @@ class Cache:
         self.cache_enable_func = None
         self.query_pre_embedding_func = None
         self.insert_pre_embedding_func = None
+        self.mm_query_pre_embedding_func = None
+        self.mm_insert_pre_embedding_func = None
         self.embedding_func = None
+        self.embedding_concurrent_func = None
         self.data_manager: Optional[DataManager] = None
         self.similarity_evaluation: Optional[SimilarityEvaluation] = None
         self.post_process_messages_func = None

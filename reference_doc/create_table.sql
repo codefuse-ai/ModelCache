@@ -11,6 +11,7 @@ CREATE TABLE `modelcache_llm_answer` (
   PRIMARY KEY(`id`)
 ) AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COMMENT = 'modelcache_llm_answer';
 
+
 CREATE TABLE `modelcache_query_log` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',

@@ -1,6 +1,6 @@
 <div align="center">
 <h1>
-Codefuse-ModelCache
+ModelCache
 </h1>
 </div>
 
@@ -25,6 +25,7 @@ Codefuse-ModelCache
 - [Acknowledgements](#Acknowledgements)
 - [Contributing](#Contributing)
 ## news
+- 🔥🔥[2024.04.09] Add Redis Search to store and retrieve embeddings in multi-tenant scene, this can reduce the interaction time between Cache and vector databases to 10ms.
 - 🔥🔥[2023.12.10] we integrate LLM embedding frameworks such as 'llmEmb', 'ONNX', 'PaddleNLP', 'FastText', alone with the image embedding framework 'timm', to bolster embedding functionality.
 - 🔥🔥[2023.11.20] codefuse-ModelCache has integrated local storage, such as sqlite and faiss, providing users with the convenience of quickly initiating tests.
 - [2023.08.26] codefuse-ModelCache...
@@ -39,20 +40,26 @@ The project's startup scripts are divided into flask4modelcache.py and flask4mod
 - Python version: 3.8 and above
 - Package Installation
 ```shell
-pip install requirements.txt 
+pip install -r requirements.txt 
 ```
 ### Service Startup
 #### Demo Service Startup
 1. Download the embedding model bin file from the following address: [https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place the downloaded bin file in the model/text2vec-base-chinese folder.
 2. Start the backend service using the flask4modelcache_dome.py script.
+```shell
+cd CodeFuse-ModelCache
+```
+```shell
+python flask4modelcache_demo.py
+```
 
 #### Normal Service Startup
 Before starting the service, the following environment configurations should be performed:
-1. Install the relational database MySQL and import the SQL file to create the data tables. The SQL file can be found at: reference_doc/create_table.sql
+1. Install the relational database MySQL and import the SQL file to create the data tables. The SQL file can be found at: ```reference_doc/create_table.sql```
 2. Install the vector database Milvus.
 3. Add the database access information to the configuration files: 
-   1. modelcache/config/milvus_config.ini 
-   2. modelcache/config/mysql_config.ini
+   1. ```modelcache/config/milvus_config.ini ```
+   2. ```modelcache/config/mysql_config.ini```
 4. Download the embedding model bin file from the following address: [https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place the downloaded bin file in the model/text2vec-base-chinese folder.
 5. Start the backend service using the flask4modelcache.py script.
 ## Service-Access
@@ -99,7 +106,7 @@ res = requests.post(url, headers=headers, json=json.dumps(data))
 ## Articles
 https://mp.weixin.qq.com/s/ExIRu2o7yvXa6nNLZcCfhQ
 ## modules
-![modelcache modules](docs/modelcache_modules_20231114.png)
+![modelcache modules](docs/modelcache_modules_20240409.png)
 ## Function-Comparison
 In terms of functionality, we have made several changes to the git repository. Firstly, we have addressed the network issues with huggingface and enhanced the inference speed by introducing local inference capabilities for embeddings. Additionally, considering the limitations of the SqlAlchemy framework, we have completely revamped the module responsible for interacting with relational databases, enabling more flexible database operations. In practical scenarios, LLM products often require integration with multiple users and multiple models. Hence, we have added support for multi-tenancy in the ModelCache, while also making preliminary compatibility adjustments for system commands and multi-turn dialogue.
 
@@ -244,11 +251,23 @@ In ModelCache, we adopted the main idea of GPTCache,  includes core modules: ada
    - Asynchronous log write-back capability for data analysis and statistics. 
    - Added model field and data statistics field for feature expansion.
 
-Future Features Under Development: 
+## Todo List
+### Adapter
+- [ ] Register adapter for Milvus：Based on the "model" parameter in the scope, initialize the corresponding Collection and perform the load operation.
+### Embedding model&inference
+- [ ] Inference Optimization: Optimizing the speed of embedding inference, compatible with inference engines such as FasterTransformer, TurboTransformers, and ByteTransformer.
+- [ ] Compatibility with Hugging Face models and ModelScope models, offering more methods for model loading.
+### Scalar Storage
+- [ ] Support MongoDB
+- [ ] Support ElasticSearch
+### Vector Storage
+- [ ] Adapts Faiss storage in multimodal scenarios.
+### Ranking
+- [ ] Add ranking model to refine the order of data after embedding recall.
+### Service
+- [ ] Supports FastAPI.
+- [ ] Add visual interface to offer a more direct user experience.
 
-- [ ] Data isolation based on hyperparameters. 
-- [ ] System prompt partitioning storage capability to enhance accuracy and efficiency of similarity matching.
-- [ ] More versatile embedding models and similarity evaluation algorithms.
 ## Acknowledgements
 This project has referenced the following open-source projects. We would like to express our gratitude to the projects and their developers for their contributions and research.<br />[GPTCache](https://github.com/zilliztech/GPTCache)
 
