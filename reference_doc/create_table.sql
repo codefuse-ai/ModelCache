@@ -1,4 +1,4 @@
-CREATE TABLE `cache_codegpt_answer` (
+CREATE TABLE `modelcache_llm_answer` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '修改时间',
