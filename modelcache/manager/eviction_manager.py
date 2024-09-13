@@ -29,10 +29,10 @@ class EvictionManager:
             return True
         return False
 
-    def delete(self):
+    def delete(self,model):
         mark_ids = self._scalar_storage.get_ids(deleted=True)
         self._scalar_storage.clear_deleted_data()
-        self._vector_base.delete(mark_ids)
+        self._vector_base.delete(mark_ids,model)
         self.delete_count += 1
         if self.delete_count >= self.REBUILD_CONDITION:
             self.rebuild()

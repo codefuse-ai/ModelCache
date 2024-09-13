@@ -41,15 +41,15 @@ class SQLStorage(CacheStorage):
         model = data[3]
         answer_type = 0
         embedding_data = embedding_data.tobytes()
+        is_deleted = 0
 
-        table_name = "cache_codegpt_answer"
-        insert_sql = "INSERT INTO {} (question, answer, answer_type, model, embedding_data) VALUES (%s, %s, %s, %s, _binary%s)".format(table_name)
-
+        table_name = "modelcache_llm_answer"
+        insert_sql = "INSERT INTO {} (question, answer, answer_type, model, embedding_data, is_deleted) VALUES (%s, %s, %s, %s, _binary%s, %s)".format(table_name)
         conn = self.pool.connection()
         try:
             with conn.cursor() as cursor:
                 # 执行插入数据操作
-                values = (question, answer, answer_type, model, embedding_data)
+                values = (question, answer, answer_type, model, embedding_data, is_deleted)
                 cursor.execute(insert_sql, values)
                 conn.commit()
                 id = cursor.lastrowid
@@ -91,7 +91,7 @@ class SQLStorage(CacheStorage):
             conn.close()
 
     def get_data_by_id(self, key: int):
-        table_name = "cache_codegpt_answer"
+        table_name = "modelcache_llm_answer"
         query_sql = "select question, answer, embedding_data, model from {} where id={}".format(table_name, key)
         conn_start = time.time()
         conn = self.pool.connection()
@@ -112,7 +112,7 @@ class SQLStorage(CacheStorage):
             return None
 
     def update_hit_count_by_id(self, primary_id: int):
-        table_name = "cache_codegpt_answer"
+        table_name = "modelcache_llm_answer"
         update_sql = "UPDATE {} SET hit_count = hit_count+1 WHERE id={}".format(table_name, primary_id)
         conn = self.pool.connection()
 
@@ -127,18 +127,30 @@ class SQLStorage(CacheStorage):
             conn.close()
 
     def get_ids(self, deleted=True):
-        pass
+        table_name = "modelcache_llm_answer"
+        state = 1 if deleted else 0
+        query_sql = "Select id FROM {} WHERE is_deleted = {}".format(table_name, state)
+        
+        conn = self.pool.connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(query_sql)
+                ids = [row[0] for row in cursor.fetchall()]
+        finally:
+            conn.close()
+        
+        return ids
 
     def mark_deleted(self, keys):
-        table_name = "cache_codegpt_answer"
-        delete_sql = "Delete from {} WHERE id in ({})".format(table_name, ",".join([str(i) for i in keys]))
+        table_name = "modelcache_llm_answer"
+        mark_sql = " update {} set is_deleted=1 WHERE id in ({})".format(table_name, ",".join([str(i) for i in keys]))
 
         # 从连接池中获取连接
         conn = self.pool.connection()
         try:
             with conn.cursor() as cursor:
                 # 执行删除数据操作
-                cursor.execute(delete_sql)
+                cursor.execute(mark_sql)
                 delete_count = cursor.rowcount
                 conn.commit()
         finally:
@@ -147,7 +159,7 @@ class SQLStorage(CacheStorage):
         return delete_count
 
     def model_deleted(self, model_name):
-        table_name = "cache_codegpt_answer"
+        table_name = "modelcache_llm_answer"
         delete_sql = "Delete from {} WHERE model='{}'".format(table_name, model_name)
 
         table_log_name = "modelcache_query_log"
@@ -169,10 +181,36 @@ class SQLStorage(CacheStorage):
         return resp
 
     def clear_deleted_data(self):
-        pass
+        table_name = "modelcache_llm_answer"
+        delete_sql = "DELETE FROM {} WHERE is_deleted = 1".format(table_name)
+        
+        conn = self.pool.connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(delete_sql)
+                delete_count = cursor.rowcount
+                conn.commit()
+        finally:
+            conn.close()
+        
+        return delete_count
 
     def count(self, state: int = 0, is_all: bool = False):
-        pass
+        table_name = "modelcache_llm_answer"
+        if is_all:
+            count_sql = "SELECT COUNT(*) FROM {}".format(table_name)
+        else:
+            count_sql = "SELECT COUNT(*) FROM {} WHERE is_deleted = {}".format(table_name,state)
+        
+        conn = self.pool.connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(count_sql)
+                num = cursor.fetchone()[0]
+        finally:
+            conn.close()
+        
+        return num
 
     def close(self):
         pass
