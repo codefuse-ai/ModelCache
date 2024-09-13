@@ -1,6 +1,6 @@
 <div align="center">
 <h1>
-Codefuse-ModelCache
+ModelCache
 </h1>
 </div>
 
@@ -262,7 +262,7 @@ In ModelCache, we adopted the main idea of GPTCache,  includes core modules: ada
 - [ ] Support ElasticSearch
 ### Vector Storage
 - [ ] Adapts Faiss storage in multimodal scenarios.
-### Rank能力
+### Ranking
 - [ ] Add ranking model to refine the order of data after embedding recall.
 ### Service
 - [ ] Supports FastAPI.
