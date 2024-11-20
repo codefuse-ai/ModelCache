@@ -9,6 +9,7 @@ from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel
 from concurrent.futures import ThreadPoolExecutor
 from starlette.responses import PlainTextResponse  
+import functools
 
 from modelcache import cache
 from modelcache.adapter import adapter
@@ -63,9 +64,10 @@ cache.init(
 executor = ThreadPoolExecutor(max_workers=6)
 
 # 异步保存查询信息
-async def save_query_info(result, model, query, delta_time_log):
+async def save_query_info_fastapi(result, model, query, delta_time_log):
     loop = asyncio.get_running_loop()
-    await loop.run_in_executor(executor, cache.data_manager.save_query_resp, result, model, json.dumps(query, ensure_ascii=False), delta_time_log)
+    func = functools.partial(cache.data_manager.save_query_resp, result, model=model, query=json.dumps(query, ensure_ascii=False), delta_time=delta_time_log)
+    await loop.run_in_executor(None, func)
 
 
 
@@ -74,19 +76,52 @@ async def first_fastapi():
     return "hello, modelcache!"
 
 @app.post("/modelcache")
-async def user_backend(request_data: RequestData):
-    # param parsing
+async def user_backend(request: Request):
     try:
-        request_type = request_data.type
+        raw_body = await request.body()
+        # 解析字符串为JSON对象
+        if isinstance(raw_body, bytes):
+            raw_body = raw_body.decode("utf-8")
+        if isinstance(raw_body, str):
+            try:
+                # 尝试将字符串解析为JSON对象
+                request_data = json.loads(raw_body)
+            except json.JSONDecodeError:
+                # 如果无法解析，返回格式错误
+                raise HTTPException(status_code=400, detail="Invalid JSON format")
+        else:
+            request_data = raw_body
+
+        # 确保request_data是字典对象
+        if isinstance(request_data, str):
+            try:
+                request_data = json.loads(request_data)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=400, detail="Invalid JSON format")
+
+        request_type = request_data.get('type')
         model = None
-        if request_data.scope:
-            model = request_data.scope.get('model', '').replace('-','_').replace('.', '_')
-        query = request_data.query
-        chat_info = request_data.chat_info
+        if 'scope' in request_data:
+            model = request_data['scope'].get('model', '').replace('-', '_').replace('.', '_')
+        query = request_data.get('query')
+        chat_info = request_data.get('chat_info')
+
+        if not request_type or request_type not in ['query', 'insert', 'remove', 'detox']:
+            raise HTTPException(status_code=400, detail="Type exception, should be one of ['query', 'insert', 'remove', 'detox']")
 
     except Exception as e:
-        result = {"errorCode": 103, "errorDesc": str(e), "cacheHit": False, "delta_time": 0, "hit_query": '', "answer": ''}
+        request_data = raw_body if 'raw_body' in locals() else None
+        result = {
+            "errorCode": 103,
+            "errorDesc": str(e),
+            "cacheHit": False,
+            "delta_time": 0,
+            "hit_query": '',
+            "answer": '',
+            "para_dict": request_data
+        }
         return result
+
 
     # model filter
     filter_resp = model_blacklist_filter(model, request_type)
@@ -101,8 +136,7 @@ async def user_backend(request_data: RequestData):
 
             if response is None:
                 result = {"errorCode": 0, "errorDesc": '', "cacheHit": False, "delta_time": delta_time, "hit_query": '', "answer": ''}
-            # elif response in ['adapt_query_exception']:
-            elif isinstance(response, str):
+            elif response in ['adapt_query_exception']:
                 result = {"errorCode": 201, "errorDesc": response, "cacheHit": False, "delta_time": delta_time,
                           "hit_query": '', "answer": ''}
             else:
@@ -111,7 +145,7 @@ async def user_backend(request_data: RequestData):
                 result = {"errorCode": 0, "errorDesc": '', "cacheHit": True, "delta_time": delta_time, "hit_query": hit_query, "answer": answer}
 
             delta_time_log = round(time.time() - start_time, 2)
-            asyncio.create_task(save_query_info(result, model, query, delta_time_log))
+            asyncio.create_task(save_query_info_fastapi(result, model, query, delta_time_log))
             return result
         except Exception as e:
             result = {"errorCode": 202, "errorDesc": str(e), "cacheHit": False, "delta_time": 0,
@@ -130,7 +164,7 @@ async def user_backend(request_data: RequestData):
             return {"errorCode": 303, "errorDesc": str(e), "writeStatus": "exception"}
 
     if request_type == 'remove':
-        response = adapter.ChatCompletion.create_remove(model=model, remove_type=request_data.remove_type, id_list=request_data.id_list)
+        response = adapter.ChatCompletion.create_remove(model=model, remove_type=request_data.get("remove_type"), id_list=request_data.get("id_list"))
         if not isinstance(response, dict):
             return {"errorCode": 401, "errorDesc": "", "response": response, "removeStatus": "exception"}
 
