@@ -12,3 +12,4 @@ transformers==4.38.2
 faiss-cpu==1.7.4
 redis==5.0.1
 modelscope==1.14.0
+fastapi==0.115.5
