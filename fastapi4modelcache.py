@@ -64,7 +64,7 @@ cache.init(
 executor = ThreadPoolExecutor(max_workers=6)
 
 # 异步保存查询信息
-async def save_query_info_fastapi(result, model, query, delta_time_log):
+async def save_query_info(result, model, query, delta_time_log):
     loop = asyncio.get_running_loop()
     func = functools.partial(cache.data_manager.save_query_resp, result, model=model, query=json.dumps(query, ensure_ascii=False), delta_time=delta_time_log)
     await loop.run_in_executor(None, func)
@@ -86,9 +86,12 @@ async def user_backend(request: Request):
             try:
                 # 尝试将字符串解析为JSON对象
                 request_data = json.loads(raw_body)
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as e:
                 # 如果无法解析，返回格式错误
-                raise HTTPException(status_code=400, detail="Invalid JSON format")
+                result = {"errorCode": 101, "errorDesc": str(e), "cacheHit": False, "delta_time": 0, "hit_query": '',
+                  "answer": ''}
+                asyncio.create_task(save_query_info(result, model='', query='', delta_time_log=0))
+                raise HTTPException(status_code=101, detail="Invalid JSON format")
         else:
             request_data = raw_body
 
@@ -97,7 +100,7 @@ async def user_backend(request: Request):
             try:
                 request_data = json.loads(request_data)
             except json.JSONDecodeError:
-                raise HTTPException(status_code=400, detail="Invalid JSON format")
+                raise HTTPException(status_code=101, detail="Invalid JSON format")
 
         request_type = request_data.get('type')
         model = None
@@ -106,8 +109,12 @@ async def user_backend(request: Request):
         query = request_data.get('query')
         chat_info = request_data.get('chat_info')
 
-        if not request_type or request_type not in ['query', 'insert', 'remove', 'detox']:
-            raise HTTPException(status_code=400, detail="Type exception, should be one of ['query', 'insert', 'remove', 'detox']")
+        if not request_type or request_type not in ['query', 'insert', 'remove', 'register']:
+            result = {"errorCode": 102,
+                      "errorDesc": "type exception, should one of ['query', 'insert', 'remove', 'register']",
+                      "cacheHit": False, "delta_time": 0, "hit_query": '', "answer": ''}
+            asyncio.create_task(save_query_info(result, model=model, query='', delta_time_log=0))
+            raise HTTPException(status_code=102, detail="Type exception, should be one of ['query', 'insert', 'remove', 'register']")
 
     except Exception as e:
         request_data = raw_body if 'raw_body' in locals() else None
@@ -145,7 +152,7 @@ async def user_backend(request: Request):
                 result = {"errorCode": 0, "errorDesc": '', "cacheHit": True, "delta_time": delta_time, "hit_query": hit_query, "answer": answer}
 
             delta_time_log = round(time.time() - start_time, 2)
-            asyncio.create_task(save_query_info_fastapi(result, model, query, delta_time_log))
+            asyncio.create_task(save_query_info(result, model, query, delta_time_log))
             return result
         except Exception as e:
             result = {"errorCode": 202, "errorDesc": str(e), "cacheHit": False, "delta_time": 0,
