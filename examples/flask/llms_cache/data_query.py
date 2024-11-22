@@ -14,6 +14,7 @@ def run():
     res = requests.post(url, headers=headers, json=json.dumps(data))
     res_text = res.text
 
+    print("data_query:", res.status_code, res_text)
 
 if __name__ == '__main__':
     run()

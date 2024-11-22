@@ -100,8 +100,7 @@ class SQLStorage(CacheStorage):
             hit_query = json.dumps(hit_query, ensure_ascii=False)
 
         table_name = "modelcache_query_log"
-        insert_sql = "INSERT INTO {} (error_code, error_desc, cache_hit, model, query, delta_time, hit_query, answer) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)".format(table_name)
-
+        insert_sql = "INSERT INTO {} (error_code, error_desc, cache_hit, model, query, delta_time, hit_query, answer) VALUES (?, ?, ?, ?, ?, ?, ?, ?)".format(table_name)
         conn = sqlite3.connect(self._url)
         try:
             cursor = conn.cursor()
