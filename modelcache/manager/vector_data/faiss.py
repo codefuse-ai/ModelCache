@@ -14,8 +14,9 @@ class Faiss(VectorBase):
         self._dimension = dimension
         self._index = faiss.index_factory(self._dimension, "IDMap,Flat", faiss.METRIC_L2)
         self._top_k = top_k
-        if os.path.isfile(index_file_path):
-            self._index = faiss.read_index(index_file_path)
+        self.index_file_path = index_file_path
+        if os.path.isfile(self.index_file_path):
+            self._index = faiss.read_index(self.index_file_path)
 
     def mul_add(self, datas: List[VectorData], model=None):
         data_array, id_array = map(list, zip(*((data.data, data.id) for data in datas)))
@@ -54,3 +55,9 @@ class Faiss(VectorBase):
 
     def count(self):
         return self._index.ntotal
+
+    def create(self, model=None):
+        if os.path.isfile(self.index_file_path):
+            self._index = faiss.read_index(self.index_file_path)
+
+        return 'create_success'

@@ -180,6 +180,14 @@ class Milvus(VectorBase):
     def rebuild(self, ids=None):  # pylint: disable=unused-argument
         self.col.compact()
 
+    def create(self, model=None):
+        collection_name_model = self.collection_name + '_' + model
+        if utility.has_collection(collection_name_model, using=self.alias):
+            return 'already_exists'
+        else:
+            self._create_collection(collection_name_model)
+            return 'create_success'
+
     def flush(self):
         self.col.flush(_async=True)
 

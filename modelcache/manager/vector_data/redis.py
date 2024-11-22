@@ -71,9 +71,11 @@ class RedisVectorStore(VectorBase):
             definition = IndexDefinition(prefix=[index_prefix], index_type=IndexType.HASH)
 
             # create Index
-            self._client.ft(index_name).create_index(
-                fields=fields, definition=definition
-            )
+            print('self._client: {}'.format(self._client))
+            resp = self._client.ft(index_name).create_index(
+                    fields=fields, definition=definition
+                )
+            print('resp: {}'.format(resp))
             return 'create_success'
 
     def mul_add(self, datas: List[VectorData], model=None):
