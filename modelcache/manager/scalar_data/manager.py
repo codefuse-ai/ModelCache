@@ -27,6 +27,10 @@ class CacheBase:
             from modelcache.manager.scalar_data.sql_storage_sqlite import SQLStorage
             sql_url = kwargs.get("sql_url", SQL_URL[name])
             cache_base = SQLStorage(db_type=name, url=sql_url)
+        elif name == 'elasticsearch':
+            from modelcache.manager.scalar_data.sql_storage_es import SQLStorage
+            config = kwargs.get("config")
+            cache_base = SQLStorage(db_type=name, config=config)
         else:
             raise NotFoundError("cache store", name)
         return cache_base

@@ -14,3 +14,5 @@ redis==5.0.1
 modelscope==1.14.0
 fastapi==0.115.5
 uvicorn==0.32.0
+elasticsearch==7.10.0
+snowflake-id==1.0.2
