@@ -21,8 +21,8 @@ class SQLStorage(CacheStorage):
             http_auth=('esuser', 'password')
         )
 
-        self.log_index = "modelcache_query_log"
-        self.ans_index = "modelcache_llm_answer"
+        self.log_index = "open_cache_mm_query_log"
+        self.ans_index = "open_cache_mm_answer"
         self.create()
         self.instance_id = 1  # 雪花算法使用的机器id 使用同一套数据库的分布式系统需要配置不同id
         # 生成雪花id
@@ -39,7 +39,8 @@ class SQLStorage(CacheStorage):
                     "answer_type": {"type": "integer"},
                     "hit_count": {"type": "integer"},
                     "model": {"type": "keyword"},
-                    "embedding_data": {"type": "binary"},
+                    "image_url": {"type": "text"},
+                    "image_id": {"type": "text"},
                     "is_deleted": {"type": "integer"},
                 }
             }
@@ -72,8 +73,9 @@ class SQLStorage(CacheStorage):
         doc = {
             "answer": data[0],
             "question": data[1],
-            "embedding_data": data[2].tolist() if hasattr(data[2], "tolist") else data[2],
-            "model": data[3],
+            "image_url": data[2],
+            "image_id": data[3],
+            "model": data[4],
             "answer_type": 0,
             "hit_count": 0,
             "is_deleted": 0
@@ -121,12 +123,13 @@ class SQLStorage(CacheStorage):
 
     def get_data_by_id(self, key: int):
         try:
-            response = self.client.get(index=self.ans_index, id=key, _source=['question', 'answer', 'embedding_data', 'model'])
+            response = self.client.get(index=self.ans_index, id=key, _source=['question', 'image_url','image_id', 'answer', 'model'])
             source = response["_source"]
             result = [
                 source.get('question'),
+                source.get('image_url'),
+                source.get('image_id'),
                 source.get('answer'),
-                source.get('embedding_data'),
                 source.get('model')
             ]
             return result
