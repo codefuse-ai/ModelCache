@@ -14,3 +14,4 @@ redis==5.0.1
 modelscope==1.14.0
 fastapi==0.115.5
 uvicorn==0.32.0
+chromadb==0.5.23
