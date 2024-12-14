@@ -19,7 +19,6 @@ class Chromadb(VectorBase):
             persist_directory="./chromadb",
             top_k: int = 1,
     ):
-        # self.collection_name = "modelcache"
         self.top_k = top_k
 
         self._client = chromadb.PersistentClient(path=persist_directory)

@@ -89,5 +89,4 @@ class Chromadb(VectorBase):
         pass
 
     def close(self):
-        # chroma无flush方法
         pass
