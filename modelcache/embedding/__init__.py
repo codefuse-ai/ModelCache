@@ -7,6 +7,7 @@ fasttext = LazyImport("fasttext", globals(), "modelcache.embedding.fasttext")
 paddlenlp = LazyImport("paddlenlp", globals(), "modelcache.embedding.paddlenlp")
 timm = LazyImport("timm", globals(), "modelcache.embedding.timm")
 huggingface_tei = LazyImport("huggingface_tei", globals(), "modelcache.embedding.huggingface_tei")
+bge_m3 = LazyImport("bge_m3", globals(), "modelcache.embedding.bge_m3")
 
 
 def Huggingface(model="sentence-transformers/all-mpnet-base-v2"):
@@ -34,3 +35,6 @@ def Timm(model="resnet50", device="default"):
 
 def HuggingfaceTEI(base_url, model):
     return huggingface_tei.HuggingfaceTEI(base_url, model)
+
+def BgeM3Embedding(model_path="model/bge-m3"):
+    return bge_m3.BgeM3Embedding(model_path)
