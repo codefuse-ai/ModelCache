@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
 import time
+import requests
 from modelcache import cache
 from modelcache.utils.error import NotInitError
 from modelcache.utils.time import time_cal
 from modelcache.processor.pre import multi_analysis
-
+from modelcache.manager import CacheBase, VectorBase, get_data_manager
 
 def adapt_query(cache_data_convert, *args, **kwargs):
     chat_cache = kwargs.pop("cache_obj", cache)
@@ -142,3 +143,31 @@ def adapt_query(cache_data_convert, *args, **kwargs):
 
             chat_cache.report.hint_cache()
             return cache_data_convert(return_message, return_query)
+        # add for request LLM
+        else:
+            data = {
+                "model": model,
+                "messages": pre_embedding_data,
+                "temperature": 0,
+                "max_token": 2048
+            }
+            URL = "https://your_model/chat"
+            try:
+                rtn = requests.post(URL, \
+                                    #headers={
+                                    #   "Authorization":APP_ID,
+                                    #  "content-Type": 'application/json'
+                                    #},
+                                    json=data)
+                if rtn.status_code!=200:
+                    print(f"rtn.status_code={rtn.status_code}")
+                completion = rtn.json()
+                finish_reason = completion["choices"][0]["finish_reason"]
+                if finish_reason != 'stop':
+                    print(f"finish_reason={finish_reason}")
+                consumed_tokens = completion["usage"]['total_tokens']
+                print("consumed_tokens:", consumed_tokens)
+                answer = completion["choices"][0]["messages"]["content"]
+                return cache_data_convert(answer, pre_embedding_data)
+            except:
+                time.sleep(20)
