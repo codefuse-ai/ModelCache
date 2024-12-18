@@ -23,14 +23,14 @@ ModelCache
 - [Quick start](#quick-start)
   - [Dependencies](#dependencies)
   - [Start service](#start-service)
-    - [Start Demo](#start-demo)
+    - [Start demo](#start-demo)
     - [Start normal service](#start-normal-service)
-- [Access the service](#access-the-service)
+- [Visit the service](#visit-the-service)
   - [Write cache](#write-cache)
   - [Query cache](#query-cache)
   - [Clear cache](#clear-cache)
 - [Function comparison](#function-comparison)
-- [Core-Features](#core-features)
+- [Features](#features)
 - [Todo List](#todo-list)
   - [Adapter](#adapter)
   - [Embedding model\&inference](#embedding-modelinference)
@@ -60,12 +60,12 @@ Codefuse-ModelCache is a semantic cache for large language models (LLMs). By cac
 
 You can find the start script in `flask4modelcache.py` and `flask4modelcache_demo.py`.
 
-- `flask4modelcache_demo.py` is a quick test service that embeds sqlite and faiss. You do not need to be concerned about database-related matters.
-- `flask4modelcache.py` is the normal service that requires configuration of MySQL and Milvus.
+- `flask4modelcache_demo.py`: A quick test service that embeds SQLite and FAISS.  No database configuration required.
+- `flask4modelcache.py`: The standard service that requires MySQL and Milvus configuration.
 
 ### Dependencies
 
-- Python: V3.8 and above
+- Python: V3.8 or above
 - Package installation
 
   ```shell
@@ -74,10 +74,10 @@ You can find the start script in `flask4modelcache.py` and `flask4modelcache_dem
 
 ### Start service
 
-#### Start Demo
+#### Start demo
 
-1. Download the embedding model bin file on [Hugging Face](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place the downloaded bin file in the model/text2vec-base-chinese folder.
-2. Start the backend service by using `flask4modelcache_dome.py`.
+1. Download the embedding model bin file from [Hugging Face](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place it in the `model/text2vec-base-chinese` folder.
+2. Start the backend service:
 
   ```shell
   cd CodeFuse-ModelCache
@@ -89,19 +89,23 @@ You can find the start script in `flask4modelcache.py` and `flask4modelcache_dem
 
 #### Start normal service
 
-Before you start normal service, make sure that you have completed these steps:
+Before you start standard service, do these steps:
 
-1. Install the relational database MySQL and import the SQL file to create the data tables. You can find the SQL file in `reference_doc/create_table.sql`.
+1. Install MySQL and import the SQL file from `reference_doc/create_table.sql`.
 2. Install vector database Milvus.
-3. Add the database access information to the configuration files:
-   1. `modelcache/config/milvus_config.ini`
-   2. `modelcache/config/mysql_config.ini`
-4. Download the embedding model bin file from [Hugging Face](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Put the bin file in the `model/text2vec-base-chinese` directory.
-5. Start the backend service by using the `flask4modelcache.py` script.
+3. Configure database access in:
+   - `modelcache/config/milvus_config.ini`
+   - `modelcache/config/mysql_config.ini`
+4. Download the embedding model bin file from [Hugging Face](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Put it in `model/text2vec-base-chinese`.
+5. Start the backend service:
 
-## Access the service
+    ```bash
+    python flask4modelcache.py
+    ```
 
-The current service provides three core functionalities through RESTful API.: Cache-Writing, Cache-Querying, and Cache-Clearing. Demos:
+## Visit the service
+
+The service provides three core RESTful API functionalities: Cache-Writing, Cache-Querying, and Cache-Clearing.
 
 ### Write cache
 
@@ -273,25 +277,35 @@ We've implemented several key updates to our repository. We've resolved network 
   </tr>
 </table>
 
-## Core-Features
+## Features
 
-In ModelCache, we adopted the main idea of GPTCache,  includes core modules: adapter, embedding, similarity, and data_manager. The adapter module is responsible for handling the business logic of various tasks and can connect the embedding, similarity, and data_manager modules. The embedding module is mainly responsible for converting text into semantic vector representations, it transforms user queries into vector form.The rank module is used for sorting and evaluating the similarity of the recalled vectors. The data_manager module is primarily used for managing the database. In order to better facilitate industrial applications, we have made architectural and functional upgrades as follows:
+In ModelCache, we incorporated the core principles of GPTCache. ModelCache has four modules: adapter, embedding, similarity, and data_manager.
 
-- [x] We have modified it similar to Redis and embedded it into the LLMs product, providing semantic caching capabilities. This ensures that it does not interfere with LLM calls, security audits, and other functionalities,  achieving compatibility with all large-scale model services.
-- [x] Multiple Model Loading Schemes:
-  - Support loading local embedding models to address Hugging Face network connectivity issues.
-  - Support loading various pretrained model embedding layers.
-- [x] Data Isolation Capability
-  - Environment Isolation: Can pull different database configurations based on the environment to achieve environment isolation (dev, prepub, prod).
-  - Multi-tenant Data Isolation: Dynamically create collections based on the model for data isolation, addressing data isolation issues in multi-model/services scenarios in LLMs products.
-- [x] Support for System Commands: Adopting a concatenation approach to address the issue of system commands in the prompt format.
-- [x] Differentiation of Long and Short Texts: Long texts pose more challenges for similarity evaluation. To address this, we have added differentiation between long and short texts, allowing for separate configuration of threshold values for determining similarity.
-- [x] Milvus Performance Optimization: The consistency_level of Milvus has been adjusted to "Session" level, which can result in better performance.
-- [x] Data Management Capability:
-  - Ability to clear the cache, used for data management after model upgrades.
-  - Hitquery recall for subsequent data analysis and model iteration reference.
-  - Asynchronous log write-back capability for data analysis and statistics.
-  - Added model field and data statistics field for feature expansion.
+- The adapter module orchestrates the business logic for various tasks, integrate the embedding, similarity, and data_manager modules.
+- The embedding module converts text into semantic vector representations, and transforms user queries into vectors.
+- The rank module ranks and evaluate the similarity of recalled vectors.
+- The data_manager module manages the databases.
+
+To make ModelCache more suitable for industrial use, we made several improvements to its architecture and functionality:
+
+- [x] Architectural adjustment (lightweight integration): 
+  - Embedded into LLM products using a Redis-like caching mode
+  - Provided semantic caching without interfering with LLM calls, security audits, and other functions
+  - Compatible with all LLM services
+- [x] Multiple model loading:
+  - Supported local embedding model loading, and resolved Hugging Face network connectivity issues
+  - Supported loading embedding layers from various pre-trained models
+- [x] Data isolation
+  - Environment isolation: Read different database configurations based on the environment. Isolate  development, staging, and production environments.
+  - Multi-tenant data isolation: Dynamically create collections based on models for data isolation, addressing data separation issues in multi-model/service scenarios within large language model products
+- [x] Supported system instruction: Adopted a concatenation approach to resolve issues with system instructions in the prompt paradigm.
+- [x] Long and short text differentiation: Long texts bring more challenges for similarity assessment. Added differentiation between long and short texts, allowing for separate threshold configurations.
+- [x] Milvus performance optimization: Adjusted Milvus consistency level to "Session" level for better performance.
+- [x] Data management:
+  - One-click cache clearing to enable easy data management after model upgrades.
+  - Recall of hit queries for subsequent data analysis and model iteration reference.
+  - Asynchronous log write-back for data analysis and statistics
+  - Added model field and data statistics field to enhance features
 
 ## Todo List
 
