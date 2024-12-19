@@ -9,62 +9,106 @@ ModelCache
 <h4 align="center">
     <p>
         <a href="https://github.com/codefuse-ai/CodeFuse-ModelCache/blob/main/README_CN.md">中文</a> |
-	    <b>English</b> 
+     <b>English</b>
     </p>
 </h4>
 </div>
 
 ## Contents
-- [news](#news)
-- [Introduction](#Introduction)
-- [Quick-Deployment](#Quick-Deployment)
-- [Service-Access](#Service-Access)
-- [Articles](#Articles)
-- [Modules](#Modules)
-- [Core-Features](#Core-Features)
-- [Acknowledgements](#Acknowledgements)
-- [Contributing](#Contributing)
-## news
-- 🔥🔥[2024.04.09] Add Redis Search to store and retrieve embeddings in multi-tenant scene, this can reduce the interaction time between Cache and vector databases to 10ms.
-- 🔥🔥[2023.12.10] we integrate LLM embedding frameworks such as 'llmEmb', 'ONNX', 'PaddleNLP', 'FastText', alone with the image embedding framework 'timm', to bolster embedding functionality.
-- 🔥🔥[2023.11.20] codefuse-ModelCache has integrated local storage, such as sqlite and faiss, providing users with the convenience of quickly initiating tests.
+
+- [Contents](#contents)
+- [News](#news)
+  - [Introduction](#introduction)
+- [Architecture](#architecture)
+- [Quick start](#quick-start)
+  - [Dependencies](#dependencies)
+  - [Start service](#start-service)
+    - [Start demo](#start-demo)
+    - [Start normal service](#start-normal-service)
+- [Visit the service](#visit-the-service)
+  - [Write cache](#write-cache)
+  - [Query cache](#query-cache)
+  - [Clear cache](#clear-cache)
+- [Function comparison](#function-comparison)
+- [Features](#features)
+- [Todo List](#todo-list)
+  - [Adapter](#adapter)
+  - [Embedding model\&inference](#embedding-modelinference)
+  - [Scalar Storage](#scalar-storage)
+  - [Vector Storage](#vector-storage)
+  - [Ranking](#ranking)
+  - [Service](#service)
+- [Acknowledgements](#acknowledgements)
+- [Contributing](#contributing)
+
+## News
+
+- 🔥🔥[2024.04.09] Added Redis Search to store and retrieve embeddings in multi-tenant. This can reduce the interaction time between Cache and vector databases to 10ms.
+- 🔥🔥[2023.12.10] Integrated LLM embedding frameworks such as 'llmEmb', 'ONNX', 'PaddleNLP', 'FastText', and the image embedding framework 'timm' to bolster embedding functionality.
+- 🔥🔥[2023.11.20] Integrated local storage, such as sqlite and faiss. This enables you to initiate quick and convenient tests.
 - [2023.08.26] codefuse-ModelCache...
+
 ### Introduction
+
 Codefuse-ModelCache is a semantic cache for large language models (LLMs). By caching pre-generated model results, it reduces response time for similar requests and improves user experience. <br />This project aims to optimize services by introducing a caching mechanism. It helps businesses and research institutions reduce the cost of inference deployment, improve model performance and efficiency, and provide scalable services for large models.  Through open-source, we aim to share and exchange technologies related to large model semantic cache.
-## Quick Deployment
-The project's startup scripts are divided into flask4modelcache.py and flask4modelcache_demo.py.
-- flask4modelcache_demo.py is a quick test service that embeds sqlite and faiss, and users do not need to be concerned about database-related matters.
-- flask4modelcache.py is the normal service that requires configuration of mysql and milvus database services.
+
+## Architecture
+
+![modelcache modules](docs/modelcache_modules_20240409.png)
+
+## Quick start
+
+You can find the start script in `flask4modelcache.py` and `flask4modelcache_demo.py`.
+
+- `flask4modelcache_demo.py`: A quick test service that embeds SQLite and FAISS.  No database configuration required.
+- `flask4modelcache.py`: The standard service that requires MySQL and Milvus configuration.
+
 ### Dependencies
 
-- Python version: 3.8 and above
-- Package Installation
-```shell
-pip install -r requirements.txt 
-```
-### Service Startup
-#### Demo Service Startup
-1. Download the embedding model bin file from the following address: [https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place the downloaded bin file in the model/text2vec-base-chinese folder.
-2. Start the backend service using the flask4modelcache_dome.py script.
-```shell
-cd CodeFuse-ModelCache
-```
-```shell
-python flask4modelcache_demo.py
-```
+- Python: V3.8 or above
+- Package installation
 
-#### Normal Service Startup
-Before starting the service, the following environment configurations should be performed:
-1. Install the relational database MySQL and import the SQL file to create the data tables. The SQL file can be found at: ```reference_doc/create_table.sql```
-2. Install the vector database Milvus.
-3. Add the database access information to the configuration files: 
-   1. ```modelcache/config/milvus_config.ini ```
-   2. ```modelcache/config/mysql_config.ini```
-4. Download the embedding model bin file from the following address: [https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place the downloaded bin file in the model/text2vec-base-chinese folder.
-5. Start the backend service using the flask4modelcache.py script.
-## Service-Access
-The current service provides three core functionalities through RESTful API.: Cache-Writing, Cache-Querying, and Cache-Clearing. Demos:
-### Cache-Writing
+  ```shell
+  pip install -r requirements.txt 
+  ```
+
+### Start service
+
+#### Start demo
+
+1. Download the embedding model bin file from [Hugging Face](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place it in the `model/text2vec-base-chinese` folder.
+2. Start the backend service:
+
+  ```shell
+  cd CodeFuse-ModelCache
+  ```
+
+  ```shell
+  python flask4modelcache_demo.py
+  ```
+
+#### Start normal service
+
+Before you start standard service, do these steps:
+
+1. Install MySQL and import the SQL file from `reference_doc/create_table.sql`.
+2. Install vector database Milvus.
+3. Configure database access in:
+   - `modelcache/config/milvus_config.ini`
+   - `modelcache/config/mysql_config.ini`
+4. Download the embedding model bin file from [Hugging Face](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Put it in `model/text2vec-base-chinese`.
+5. Start the backend service:
+
+    ```bash
+    python flask4modelcache.py
+    ```
+
+## Visit the service
+
+The service provides three core RESTful API functionalities: Cache-Writing, Cache-Querying, and Cache-Clearing.
+
+### Write cache
+
 ```python
 import json
 import requests
@@ -77,7 +121,9 @@ data = {'type': type, 'scope': scope, 'chat_info': chat_info}
 headers = {"Content-Type": "application/json"}
 res = requests.post(url, headers=headers, json=json.dumps(data))
 ```
-### Cache-Querying
+
+### Query cache
+
 ```python
 import json
 import requests
@@ -90,7 +136,9 @@ data = {'type': type, 'scope': scope, 'query': query}
 headers = {"Content-Type": "application/json"}
 res = requests.post(url, headers=headers, json=json.dumps(data))
 ```
-### Cache-Clearing
+
+### Clear cache
+
 ```python
 import json
 import requests
@@ -103,12 +151,10 @@ data = {'type': type, 'scope': scope, 'remove_type': remove_type}
 headers = {"Content-Type": "application/json"}
 res = requests.post(url, headers=headers, json=json.dumps(data))
 ```
-## Articles
-https://mp.weixin.qq.com/s/ExIRu2o7yvXa6nNLZcCfhQ
-## modules
-![modelcache modules](docs/modelcache_modules_20240409.png)
-## Function-Comparison
-In terms of functionality, we have made several changes to the git repository. Firstly, we have addressed the network issues with huggingface and enhanced the inference speed by introducing local inference capabilities for embeddings. Additionally, considering the limitations of the SqlAlchemy framework, we have completely revamped the module responsible for interacting with relational databases, enabling more flexible database operations. In practical scenarios, LLM products often require integration with multiple users and multiple models. Hence, we have added support for multi-tenancy in the ModelCache, while also making preliminary compatibility adjustments for system commands and multi-turn dialogue.
+
+## Function comparison
+
+We've implemented several key updates to our repository. We've resolved network issues with Hugging Face and improved inference speed by introducing local embedding capabilities. Due to limitations in SqlAlchemy, we've redesigned our relational database interaction module for more flexible operations. We've added multi-tenancy support to ModelCache, recognizing the need for multiple users and models in LLM products. Lastly, we've made initial adjustments for better compatibility with system commands and multi-turn dialogues.
 
 <table>
   <tr>
@@ -231,45 +277,69 @@ In terms of functionality, we have made several changes to the git repository. F
   </tr>
 </table>
 
+## Features
 
-## Core-Features
-In ModelCache, we adopted the main idea of GPTCache,  includes core modules: adapter, embedding, similarity, and data_manager. The adapter module is responsible for handling the business logic of various tasks and can connect the embedding, similarity, and data_manager modules. The embedding module is mainly responsible for converting text into semantic vector representations, it transforms user queries into vector form.The rank module is used for sorting and evaluating the similarity of the recalled vectors. The data_manager module is primarily used for managing the database. In order to better facilitate industrial applications, we have made architectural and functional upgrades as follows:
+In ModelCache, we incorporated the core principles of GPTCache. ModelCache has four modules: adapter, embedding, similarity, and data_manager.
 
-- [x] We have modified it similar to Redis and embedded it into the LLMs product, providing semantic caching capabilities. This ensures that it does not interfere with LLM calls, security audits, and other functionalities,  achieving compatibility with all large-scale model services.
-- [x] Multiple Model Loading Schemes: 
-   - Support loading local embedding models to address Hugging Face network connectivity issues. 
-   - Support loading various pretrained model embedding layers.
-- [x] Data Isolation Capability 
-   - Environment Isolation: Can pull different database configurations based on the environment to achieve environment isolation (dev, prepub, prod). 
-   - Multi-tenant Data Isolation: Dynamically create collections based on the model for data isolation, addressing data isolation issues in multi-model/services scenarios in LLMs products.
-- [x] Support for System Commands: Adopting a concatenation approach to address the issue of system commands in the prompt format.
-- [x] Differentiation of Long and Short Texts: Long texts pose more challenges for similarity evaluation. To address this, we have added differentiation between long and short texts, allowing for separate configuration of threshold values for determining similarity.
-- [x] Milvus Performance Optimization: The consistency_level of Milvus has been adjusted to "Session" level, which can result in better performance.
-- [x] Data Management Capability: 
-   - Ability to clear the cache, used for data management after model upgrades.
-   - Hitquery recall for subsequent data analysis and model iteration reference. 
-   - Asynchronous log write-back capability for data analysis and statistics. 
-   - Added model field and data statistics field for feature expansion.
+- The adapter module orchestrates the business logic for various tasks, integrate the embedding, similarity, and data_manager modules.
+- The embedding module converts text into semantic vector representations, and transforms user queries into vectors.
+- The rank module ranks and evaluate the similarity of recalled vectors.
+- The data_manager module manages the databases.
+
+To make ModelCache more suitable for industrial use, we made several improvements to its architecture and functionality:
+
+- [x] Architectural adjustment (lightweight integration): 
+  - Embedded into LLM products using a Redis-like caching mode
+  - Provided semantic caching without interfering with LLM calls, security audits, and other functions
+  - Compatible with all LLM services
+- [x] Multiple model loading:
+  - Supported local embedding model loading, and resolved Hugging Face network connectivity issues
+  - Supported loading embedding layers from various pre-trained models
+- [x] Data isolation
+  - Environment isolation: Read different database configurations based on the environment. Isolate  development, staging, and production environments.
+  - Multi-tenant data isolation: Dynamically create collections based on models for data isolation, addressing data separation issues in multi-model/service scenarios within large language model products
+- [x] Supported system instruction: Adopted a concatenation approach to resolve issues with system instructions in the prompt paradigm.
+- [x] Long and short text differentiation: Long texts bring more challenges for similarity assessment. Added differentiation between long and short texts, allowing for separate threshold configurations.
+- [x] Milvus performance optimization: Adjusted Milvus consistency level to "Session" level for better performance.
+- [x] Data management:
+  - One-click cache clearing to enable easy data management after model upgrades.
+  - Recall of hit queries for subsequent data analysis and model iteration reference.
+  - Asynchronous log write-back for data analysis and statistics
+  - Added model field and data statistics field to enhance features
 
 ## Todo List
+
 ### Adapter
+
 - [ ] Register adapter for Milvus：Based on the "model" parameter in the scope, initialize the corresponding Collection and perform the load operation.
+
 ### Embedding model&inference
+
 - [ ] Inference Optimization: Optimizing the speed of embedding inference, compatible with inference engines such as FasterTransformer, TurboTransformers, and ByteTransformer.
 - [ ] Compatibility with Hugging Face models and ModelScope models, offering more methods for model loading.
+
 ### Scalar Storage
+
 - [ ] Support MongoDB
 - [ ] Support ElasticSearch
+
 ### Vector Storage
+
 - [ ] Adapts Faiss storage in multimodal scenarios.
+
 ### Ranking
+
 - [ ] Add ranking model to refine the order of data after embedding recall.
+
 ### Service
+
 - [ ] Supports FastAPI.
 - [ ] Add visual interface to offer a more direct user experience.
 
 ## Acknowledgements
+
 This project has referenced the following open-source projects. We would like to express our gratitude to the projects and their developers for their contributions and research.<br />[GPTCache](https://github.com/zilliztech/GPTCache)
 
 ## Contributing
+
 ModelCache is a captivating and invaluable project, whether you are an experienced developer or a novice just starting out, your contributions to this project are warmly welcomed. Your involvement in this project, be it through raising issues, providing suggestions, writing code, or documenting and creating examples, will enhance the project's quality and make a significant contribution to the open-source community.
