@@ -5,7 +5,9 @@ from modelcache import cache
 from modelcache.utils.error import NotInitError
 from modelcache.utils.time import time_cal
 from modelcache.processor.pre import multi_analysis
+from FlagEmbedding import FlagReranker
 
+USE_RERANKER = True  # 如果为 True 则启用 reranker，否则使用原有逻辑
 
 def adapt_query(cache_data_convert, *args, **kwargs):
     chat_cache = kwargs.pop("cache_obj", cache)
@@ -74,53 +76,102 @@ def adapt_query(cache_data_convert, *args, **kwargs):
         if rank_pre < rank_threshold:
             return
 
-        for cache_data in cache_data_list:
-            primary_id = cache_data[1]
-            ret = chat_cache.data_manager.get_scalar_data(
-                cache_data, extra_param=context.get("get_scalar_data", None)
-            )
-            if ret is None:
-                continue
+        if USE_RERANKER:
+            reranker = FlagReranker('BAAI/bge-reranker-v2-m3', use_fp16=False)
+            for cache_data in cache_data_list:
+                primary_id = cache_data[1]
+                ret = chat_cache.data_manager.get_scalar_data(
+                    cache_data, extra_param=context.get("get_scalar_data", None)
+                )
+                if ret is None:
+                    continue
 
-            if "deps" in context and hasattr(ret.question, "deps"):
-                eval_query_data = {
-                    "question": context["deps"][0]["data"],
-                    "embedding": None
-                }
-                eval_cache_data = {
-                    "question": ret.question.deps[0].data,
-                    "answer": ret.answers[0].answer,
-                    "search_result": cache_data,
-                    "embedding": None,
-                }
-            else:
-                eval_query_data = {
-                    "question": pre_embedding_data,
-                    "embedding": embedding_data,
-                }
+                rank = reranker.compute_score([pre_embedding_data, ret[0]], normalize=True)
 
-                eval_cache_data = {
-                    "question": ret[0],
-                    "answer": ret[1],
-                    "search_result": cache_data,
-                    "embedding": None
-                }
-            rank = chat_cache.similarity_evaluation.evaluation(
-                eval_query_data,
-                eval_cache_data,
-                extra_param=context.get("evaluation_func", None),
-            )
+                if "deps" in context and hasattr(ret.question, "deps"):
+                    eval_query_data = {
+                        "question": context["deps"][0]["data"],
+                        "embedding": None
+                    }
+                    eval_cache_data = {
+                        "question": ret.question.deps[0].data,
+                        "answer": ret.answers[0].answer,
+                        "search_result": cache_data,
+                        "embedding": None,
+                    }
+                else:
+                    eval_query_data = {
+                        "question": pre_embedding_data,
+                        "embedding": embedding_data,
+                    }
 
-            if len(pre_embedding_data) <= 256:
-                if rank_threshold <= rank:
-                    cache_answers.append((rank, ret[1]))
-                    cache_questions.append((rank, ret[0]))
-                    cache_ids.append((rank, primary_id))
-            else:
-                if rank_threshold_long <= rank:
-                    cache_answers.append((rank, ret[1]))
-                    cache_questions.append((rank, ret[0]))
-                    cache_ids.append((rank, primary_id))
+                    eval_cache_data = {
+                        "question": ret[0],
+                        "answer": ret[1],
+                        "search_result": cache_data,
+                        "embedding": None
+                    }
+
+                if len(pre_embedding_data) <= 256:
+                    if rank_threshold <= rank:
+                        cache_answers.append((rank, ret[1]))
+                        cache_questions.append((rank, ret[0]))
+                        cache_ids.append((rank, primary_id))
+                else:
+                    if rank_threshold_long <= rank:
+                        cache_answers.append((rank, ret[1]))
+                        cache_questions.append((rank, ret[0]))
+                        cache_ids.append((rank, primary_id))
+        else:
+            # 不使用 reranker 时，走原来的逻辑
+            for cache_data in cache_data_list:
+                primary_id = cache_data[1]
+                ret = chat_cache.data_manager.get_scalar_data(
+                    cache_data, extra_param=context.get("get_scalar_data", None)
+                )
+                if ret is None:
+                    continue
+
+                if "deps" in context and hasattr(ret.question, "deps"):
+                    eval_query_data = {
+                        "question": context["deps"][0]["data"],
+                        "embedding": None
+                    }
+                    eval_cache_data = {
+                        "question": ret.question.deps[0].data,
+                        "answer": ret.answers[0].answer,
+                        "search_result": cache_data,
+                        "embedding": None,
+                    }
+                else:
+                    eval_query_data = {
+                        "question": pre_embedding_data,
+                        "embedding": embedding_data,
+                    }
+
+                    eval_cache_data = {
+                        "question": ret[0],
+                        "answer": ret[1],
+                        "search_result": cache_data,
+                        "embedding": None
+                    }
+                rank = chat_cache.similarity_evaluation.evaluation(
+                    eval_query_data,
+                    eval_cache_data,
+                    extra_param=context.get("evaluation_func", None),
+                )
+
+                if len(pre_embedding_data) <= 256:
+                    if rank_threshold <= rank:
+                        cache_answers.append((rank, ret[1]))
+                        cache_questions.append((rank, ret[0]))
+                        cache_ids.append((rank, primary_id))
+                else:
+                    if rank_threshold_long <= rank:
+                        cache_answers.append((rank, ret[1]))
+                        cache_questions.append((rank, ret[0]))
+                        cache_ids.append((rank, primary_id))
+
         cache_answers = sorted(cache_answers, key=lambda x: x[0], reverse=True)
         cache_questions = sorted(cache_questions, key=lambda x: x[0], reverse=True)
         cache_ids = sorted(cache_ids, key=lambda x: x[0], reverse=True)
