@@ -73,3 +73,7 @@ def import_pillow():
 
 def import_redis():
     _check_library("redis")
+
+
+def import_chromadb():
+    _check_library("chromadb", package="chromadb")
