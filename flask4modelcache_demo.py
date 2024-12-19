@@ -109,6 +109,8 @@ def user_backend():
             else:
                 answer = response_text(response)
                 hit_query = response_hitquery(response)
+                if hit_query.equal(query):
+                    save_query_info(answer, model, query, delta_time_log)
                 result = {"errorCode": 0, "errorDesc": '', "cacheHit": True, "delta_time": delta_time,
                           "hit_query": hit_query, "answer": answer}
             delta_time_log = round(time.time() - start_time, 2)
