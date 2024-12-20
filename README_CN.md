@@ -9,7 +9,8 @@ ModelCache
 <h4 align="center">
     <p>
         <b>中文</b> |
-        <a href="https://github.com/codefuse-ai/CodeFuse-ModelCache/blob/main/README.md">English</a>
+        <a href="https://github.com/codefuse-ai/CodeFuse-ModelCache/blob/main/README.md">English</a> |
+        <a href="https://github.com/codefuse-ai/CodeFuse-ModelCache/blob/main/README_JP.md">日本語</a>
     </p>
 </h4>
 </div>
