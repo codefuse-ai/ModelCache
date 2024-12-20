@@ -43,6 +43,7 @@ ModelCache
 
 ## News
 
+- 🔥🔥[2024.10.22] Added tasks for 1024 developer day.
 - 🔥🔥[2024.04.09] Added Redis Search to store and retrieve embeddings in multi-tenant. This can reduce the interaction time between Cache and vector databases to 10ms.
 - 🔥🔥[2023.12.10] Integrated LLM embedding frameworks such as 'llmEmb', 'ONNX', 'PaddleNLP', 'FastText', and the image embedding framework 'timm' to bolster embedding functionality.
 - 🔥🔥[2023.11.20] Integrated local storage, such as sqlite and faiss. This enables you to initiate quick and convenient tests.
@@ -60,7 +61,7 @@ Codefuse-ModelCache is a semantic cache for large language models (LLMs). By cac
 
 You can find the start script in `flask4modelcache.py` and `flask4modelcache_demo.py`.
 
-- `flask4modelcache_demo.py`: A quick test service that embeds SQLite and FAISS.  No database configuration required.
+- `flask4modelcache_demo.py`: A quick test service that embeds SQLite and FAISS. No database configuration required.
 - `flask4modelcache.py`: The standard service that requires MySQL and Milvus configuration.
 
 ### Dependencies
