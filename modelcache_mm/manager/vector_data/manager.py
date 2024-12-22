@@ -108,6 +108,15 @@ class VectorBase:
                 dimension=dimension,
                 top_k=top_k
             )
+        elif name == "chromadb":
+            from modelcache_mm.manager.vector_data.chroma import Chromadb
+
+            chromadb_config = kwargs.get("chromadb_config", None)
+            persist_directory = chromadb_config.get('chromadb', 'persist_directory')
+            vector_base = Chromadb(
+                persist_directory=persist_directory,
+                top_k=top_k,
+            )
         else:
             raise NotFoundError("vector store", name)
         return vector_base
