@@ -1,0 +1,70 @@
+version: 'Beta'
+services:
+  mysql:
+    image: mysql:8.0.23
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_DATABASE: 'modelcache'
+      MYSQL_USER: 'modelcache'
+      MYSQL_PASSWORD: 'modelcache'
+    ports:
+      - 3306:3306
+    volumes:
+      - ./data/mysql/db:/var/lib/mysql
+      - ./data/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./data/mysql/init:/docker-entrypoint-initdb.d
+    restart: on-failure
+    networks:
+      - modelcache
+
+  milvus:
+    image: milvusdb/milvus:v2.5.0-beta
+    container_name: milvus
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_USE_EMBED: true
+      ETCD_DATA_DIR: /var/lib/milvus/etcd
+      ETCD_CONFIG_PATH: /milvus/configs/embedEtcd.yaml
+      COMMON_STORAGETYPE: local
+    volumes:
+      - ./data/milvus/db:/var/lib/milvus
+      - ./data/milvus/embedEtcd.yaml:/milvus/configs/embedEtcd.yaml
+      - ./data/milvus/user.yaml:/milvus/configs/user.yaml
+    ports:
+      - 19530:19530
+      - 9091:9091
+      - 2379:2379
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      start_period: 90s
+      timeout: 20s
+      retries: 3
+    networks:
+      - modelcache
+    restart: on-failure  
+    command: milvus run standalone
+
+  modelcache:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: modelcache
+    image: modelcache:0.1.0
+    ports:
+      - 5000:5000
+    volumes:
+      - ./model:/home/user/model
+      - ./modelcache:/home/user/modelcache
+      - ./modelcache_mm:/home/user/modelcache_mm
+      - ./fastapi4modelcache.py:/home/user/fastapi4modelcache.py
+    networks:
+      - modelcache
+    restart: on-failure
+    command: sh -c "uvicorn fastapi4modelcache:app --reload --reload-dir /home/user --port=5000 --host=0.0.0.0"
+
+networks:
+  modelcache: 
+    external: true
