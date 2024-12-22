@@ -102,13 +102,11 @@ class VectorBase:
         elif name == "chromadb":
             from modelcache.manager.vector_data.chroma import Chromadb
 
-            client_settings = kwargs.get("client_settings", None)
-            persist_directory = kwargs.get("persist_directory", None)
-            collection_name = kwargs.get("collection_name", COLLECTION_NAME)
+            chromadb_config = kwargs.get("chromadb_config", None)
+            persist_directory = chromadb_config.get('chromadb','persist_directory')
+
             vector_base = Chromadb(
-                client_settings=client_settings,
                 persist_directory=persist_directory,
-                collection_name=collection_name,
                 top_k=top_k,
             )
         elif name == "hnswlib":
