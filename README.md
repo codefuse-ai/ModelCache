@@ -24,6 +24,7 @@ ModelCache
   - [Dependencies](#dependencies)
   - [Start service](#start-service)
     - [Start demo](#start-demo)
+    - [Service Startup With Docker-compose](#service-startup-with-docker-compose)
     - [Start normal service](#start-normal-service)
 - [Visit the service](#visit-the-service)
   - [Write cache](#write-cache)
@@ -87,7 +88,23 @@ You can find the start script in `flask4modelcache.py` and `flask4modelcache_dem
   ```shell
   python flask4modelcache_demo.py
   ```
+#### Service Startup With Docker-compose
+1. Download the embedding model bin file from [Hugging Face](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place it in the `model/text2vec-base-chinese` folder.
+2. Configure docker network, only need to execute once
+```shell
+cd CodeFuse-ModelCache
+```
+```shell
+docker network create modelcache
+```
+3. Execute the docker-compose command
+```shell
+# When the modelcache image does not exist locally for the first time, or when the Dockerfile is changed
+docker-compose up --build
 
+# This is not the first run and the Dockerfile has not changed
+docker-compose up
+```
 #### Start normal service
 
 Before you start standard service, do these steps:
