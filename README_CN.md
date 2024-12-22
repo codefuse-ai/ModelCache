@@ -44,7 +44,7 @@ Codefuse-ModelCache 是一个开源的大模型语义缓存系统，通过缓存
 pip install -r requirements.txt 
 ```
 ### 服务启动
-#### Demo服务启动
+#### 方式一：Demo服务启动
 - 离线模型bin文件下载， 参考地址：[https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main)，并将下载的bin文件，放到 model/text2vec-base-chinese 文件夹中。
 - 执行flask4modelcache_demo.py启动服务。
 ```shell
@@ -54,7 +54,22 @@ cd CodeFuse-ModelCache
 python flask4modelcache_demo.py
 ```
 
-#### 正常服务启动
+#### 方式二：通过 docker-compose 启动服务
+- 离线模型bin文件下载， 参考地址：[https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main)，并将下载的bin文件，放到 model/text2vec-base-chinese 文件夹中。
+
+- 配置 docker network，只需执行一次
+```shell
+docker network create modelcache
+```
+- 执行 docker-compose 命令
+```shell
+# 首次运行本地不存在 modelcache 镜像、或 Dockerfile 变更时
+docker-compose up --build
+
+# 非首次运行，且 Dockerfile 无变更
+docker-compose up
+```
+#### 方式三：不通过 docker-compose 启动服务
 在启动服务前，应该进行如下环境配置：
 1. 安装关系数据库 mysql， 导入sql创建数据表，sql文件:```reference_doc/create_table.sql```
 2. 安装向量数据库milvus

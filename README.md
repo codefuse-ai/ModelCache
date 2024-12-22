@@ -43,7 +43,7 @@ The project's startup scripts are divided into flask4modelcache.py and flask4mod
 pip install -r requirements.txt 
 ```
 ### Service Startup
-#### Demo Service Startup
+#### Method 1: Demo Service Startup
 1. Download the embedding model bin file from the following address: [https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place the downloaded bin file in the model/text2vec-base-chinese folder.
 2. Start the backend service using the flask4modelcache_dome.py script.
 ```shell
@@ -53,7 +53,21 @@ cd CodeFuse-ModelCache
 python flask4modelcache_demo.py
 ```
 
-#### Normal Service Startup
+#### Method 2: Service Startup With Docker-compose
+1. Download the embedding model bin file from the following address: [https://huggingface.co/shibing624/text2vec-base-chinese/tree/main](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place the downloaded bin file in the model/text2vec-base-chinese folder.
+2. Configure docker network, only need to execute once
+```shell
+docker network create modelcache
+```
+3. Execute the docker-compose command
+```shell
+# When the modelcache image does not exist locally for the first time, or when the Dockerfile is changed
+docker-compose up --build
+
+# This is not the first run and the Dockerfile has not changed
+docker-compose up
+```
+#### Method 3: Service Startup Without Docker-compose
 Before starting the service, the following environment configurations should be performed:
 1. Install the relational database MySQL and import the SQL file to create the data tables. The SQL file can be found at: ```reference_doc/create_table.sql```
 2. Install the vector database Milvus.
