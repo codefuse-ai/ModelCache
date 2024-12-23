@@ -24,6 +24,7 @@ ModelCache
   - [环境依赖](#环境依赖)
   - [启动服务](#启动服务)
     - [启动 Demo](#启动-demo)
+    - [通过 docker-compose 启动服务](#通过-docker-compose-启动服务)
     - [启动标准服务](#启动标准服务)
 - [服务访问](#服务访问)
   - [写入 cache](#写入-cache)
@@ -88,6 +89,25 @@ Codefuse-ModelCache 是一个开源的大模型语义缓存系统，通过缓存
   ```shell
   python flask4modelcache_demo.py
   ```
+
+#### 通过 docker-compose 启动服务
+- 离线模型 bin 文件下载， 参考地址：[Hugging Face](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main)，并将下载的 bin 文件，放到 `model/text2vec-base-chinese` 文件夹中。
+
+- 配置 docker network，只需执行一次
+```shell
+cd CodeFuse-ModelCache
+```
+```shell
+docker network create modelcache
+```
+- 执行 docker-compose 命令
+```shell
+# 首次运行本地不存在 modelcache 镜像、或 Dockerfile 变更时
+docker-compose up --build
+
+# 非首次运行，且 Dockerfile 无变更
+docker-compose up
+```
 
 #### 启动标准服务
 

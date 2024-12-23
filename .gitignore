@@ -143,3 +143,6 @@ dmypy.json
 **/modelcache_serving.py
 
 **/model/
+
+/data/milvus/db
+/data/mysql/db
