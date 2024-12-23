@@ -38,13 +38,16 @@ mysql_config.read('modelcache/config/mysql_config.ini')
 milvus_config = configparser.ConfigParser()
 milvus_config.read('modelcache/config/milvus_config.ini')
 
+es_config = configparser.ConfigParser()
+es_config.read('modelcache/config/elasticsearch_config.ini')
+
 # redis_config = configparser.ConfigParser()
 # redis_config.read('modelcache/config/redis_config.ini')
 
 # chromadb_config = configparser.ConfigParser()
 # chromadb_config.read('modelcache/config/chromadb_config.ini')
 
-data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),
+data_manager = get_data_manager(CacheBase("elasticsearch", config=es_config),
                                 VectorBase("milvus", dimension=data2vec.dimension, milvus_config=milvus_config))
 
 
