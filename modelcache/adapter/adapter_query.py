@@ -7,11 +7,13 @@ from modelcache.utils.time import time_cal
 from modelcache.processor.pre import multi_analysis
 from FlagEmbedding import FlagReranker
 
-USE_RERANKER = True  # 如果为 True 则启用 reranker，否则使用原有逻辑
+# USE_RERANKER = True  # 如果为 True 则启用 reranker，否则使用原有逻辑
+
 
 def adapt_query(cache_data_convert, *args, **kwargs):
     chat_cache = kwargs.pop("cache_obj", cache)
     scope = kwargs.pop("scope", None)
+    use_reranker = kwargs.pop("use_reranker", False)
     model = scope['model']
     if not chat_cache.has_init:
         raise NotInitError()
@@ -76,7 +78,7 @@ def adapt_query(cache_data_convert, *args, **kwargs):
         if rank_pre < rank_threshold:
             return
 
-        if USE_RERANKER:
+        if use_reranker:
             reranker = FlagReranker('BAAI/bge-reranker-v2-m3', use_fp16=False)
             for cache_data in cache_data_list:
                 primary_id = cache_data[1]
