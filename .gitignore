@@ -142,7 +142,7 @@ dmypy.json
 **/multicache_serving.py
 **/modelcache_serving.py
 
-**/model/
+**/model/text2vec-base-chinese
 
 /data/milvus/db
 /data/mysql/db

@@ -1,7 +1,7 @@
-version: 'Beta'
+name: "modelcache"
 services:
   mysql:
-    image: mysql:8.0.23
+    image: mysql:9.3.0
     container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: 'root'
@@ -19,7 +19,7 @@ services:
       - modelcache
 
   milvus:
-    image: milvusdb/milvus:v2.5.0-beta
+    image: milvusdb/milvus:v2.5.10
     container_name: milvus
     security_opt:
       - seccomp:unconfined
@@ -47,24 +47,24 @@ services:
     restart: on-failure  
     command: milvus run standalone
 
-  modelcache:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    container_name: modelcache
-    image: modelcache:0.1.0
-    ports:
-      - 5000:5000
-    volumes:
-      - ./model:/home/user/model
-      - ./modelcache:/home/user/modelcache
-      - ./modelcache_mm:/home/user/modelcache_mm
-      - ./fastapi4modelcache.py:/home/user/fastapi4modelcache.py
-    networks:
-      - modelcache
-    restart: on-failure
-    command: sh -c "uvicorn fastapi4modelcache:app --reload --reload-dir /home/user --port=5000 --host=0.0.0.0"
+#  modelcache:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: modelcache
+#    image: modelcache:0.1.0
+#    ports:
+#      - 5000:5000
+#    volumes:
+#      - ./model:/home/user/model
+#      - ./modelcache:/home/user/modelcache
+#      - ./modelcache_mm:/home/user/modelcache_mm
+#      - ./fastapi4modelcache.py:/home/user/fastapi4modelcache.py
+#    networks:
+#      - modelcache
+#    restart: on-failure
+#    command: sh -c "uvicorn fastapi4modelcache:app --reload --reload-dir /home/user --port=5000 --host=0.0.0.0"
 
 networks:
   modelcache: 
-    external: true
+    driver: bridge

@@ -38,8 +38,8 @@ mysql_config.read('modelcache/config/mysql_config.ini')
 milvus_config = configparser.ConfigParser()
 milvus_config.read('modelcache/config/milvus_config.ini')
 
-es_config = configparser.ConfigParser()
-es_config.read('modelcache/config/elasticsearch_config.ini')
+# es_config = configparser.ConfigParser()
+# es_config.read('modelcache/config/elasticsearch_config.ini')
 
 # redis_config = configparser.ConfigParser()
 # redis_config.read('modelcache/config/redis_config.ini')
@@ -47,7 +47,7 @@ es_config.read('modelcache/config/elasticsearch_config.ini')
 # chromadb_config = configparser.ConfigParser()
 # chromadb_config.read('modelcache/config/chromadb_config.ini')
 
-data_manager = get_data_manager(CacheBase("elasticsearch", config=es_config),
+data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),
                                 VectorBase("milvus", dimension=data2vec.dimension, milvus_config=milvus_config))
 
 
@@ -77,17 +77,18 @@ def first_flask():  # 视图函数
 
 @app.route('/modelcache', methods=['GET', 'POST'])
 def user_backend():
+    param_dict = []
     try:
         if request.method == 'POST':
-            request_data = request.json
+            param_dict = request.json
         elif request.method == 'GET':
-            request_data = request.args
-        param_dict = json.loads(request_data)
+            param_dict = request.args
     except Exception as e:
         result = {"errorCode": 101, "errorDesc": str(e), "cacheHit": False, "delta_time": 0, "hit_query": '',
                   "answer": ''}
         cache.data_manager.save_query_resp(result, model='', query='', delta_time=0)
         return json.dumps(result)
+
 
     # param parsing
     try:
@@ -197,4 +198,4 @@ def user_backend():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
