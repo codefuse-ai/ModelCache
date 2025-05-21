@@ -6,7 +6,7 @@ import configparser
 import json
 from modelcache import cache
 from modelcache.adapter import adapter
-from modelcache.manager import CacheBase, VectorBase, get_data_manager
+from modelcache.manager import CacheBase, VectorBase, get_data_manager, data_manager
 from modelcache.similarity_evaluation.distance import SearchDistanceEvaluation
 from modelcache.processor.pre import query_multi_splicing
 from modelcache.processor.pre import insert_multi_splicing
@@ -30,8 +30,10 @@ def save_query_info(result, model, query, delta_time_log):
 def response_hitquery(cache_resp):
     return cache_resp['hitQuery']
 
-
 data2vec = Data2VecAudio()
+embedding_func = data2vec.to_embeddings
+dimension = data2vec.dimension
+
 mysql_config = configparser.ConfigParser()
 mysql_config.read('modelcache/config/mysql_config.ini')
 
@@ -48,7 +50,7 @@ milvus_config.read('modelcache/config/milvus_config.ini')
 # chromadb_config.read('modelcache/config/chromadb_config.ini')
 
 data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),
-                                VectorBase("milvus", dimension=data2vec.dimension, milvus_config=milvus_config))
+                                VectorBase("milvus", dimension=dimension, milvus_config=milvus_config))
 
 
 # data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),
@@ -57,9 +59,8 @@ data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),
 # data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),
 #                                 VectorBase("redis", dimension=data2vec.dimension, redis_config=redis_config))
 
-
 cache.init(
-    embedding_func=data2vec.to_embeddings,
+    embedding_func=embedding_func,
     data_manager=data_manager,
     similarity_evaluation=SearchDistanceEvaluation(),
     query_pre_embedding_func=query_multi_splicing,

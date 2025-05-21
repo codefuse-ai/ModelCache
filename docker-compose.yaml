@@ -14,7 +14,7 @@ services:
       - ./data/mysql/db:/var/lib/mysql
       - ./data/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
       - ./data/mysql/init:/docker-entrypoint-initdb.d
-    restart: on-failure
+#    restart: on-failure
     networks:
       - modelcache
 
@@ -36,15 +36,15 @@ services:
       - 19530:19530
       - 9091:9091
       - 2379:2379
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
-      interval: 30s
-      start_period: 90s
-      timeout: 20s
-      retries: 3
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+#      interval: 30s
+#      start_period: 90s
+#      timeout: 20s
+#      retries: 3
     networks:
       - modelcache
-    restart: on-failure  
+#    restart: on-failure
     command: milvus run standalone
 
 #  modelcache:

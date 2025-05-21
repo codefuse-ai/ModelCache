@@ -7,6 +7,9 @@ import numpy as np
 import cachetools
 from abc import abstractmethod, ABCMeta
 from typing import List, Any, Optional, Union
+
+from numpy import ndarray
+
 from modelcache.manager.scalar_data.base import (
     CacheStorage,
     CacheData,
@@ -21,6 +24,7 @@ from modelcache.manager.eviction import EvictionBase
 from modelcache.manager.eviction_manager import EvictionManager
 from modelcache.utils.log import modelcache_log
 
+NORMALIZE = True
 
 class DataManager(metaclass=ABCMeta):
     """DataManager manage the cache data, including save and search"""
@@ -158,9 +162,9 @@ class SSDataManager(DataManager):
         self.v = v
         self.o = o
 
-    def save(self, question, answer, embedding_data, **kwargs):
+    def save(self, questions: List[any], answers: List[any], embedding_datas: List[any], **kwargs):
         model = kwargs.pop("model", None)
-        self.import_data([question], [answer], [embedding_data], model)
+        self.import_data(questions, answers, embedding_datas, model)
 
     def save_query_resp(self, query_resp_dict, **kwargs):
         save_query_start_time = time.time()
@@ -197,9 +201,10 @@ class SSDataManager(DataManager):
             raise ParamError("Make sure that all parameters have the same length")
         cache_datas = []
 
-        embedding_datas = [
-            normalize(embedding_data) for embedding_data in embedding_datas
-        ]
+        if NORMALIZE:
+            embedding_datas = [
+                normalize(embedding_data) for embedding_data in embedding_datas
+            ]
 
         for i, embedding_data in enumerate(embedding_datas):
             if self.o is not None:
@@ -212,11 +217,9 @@ class SSDataManager(DataManager):
             cache_datas.append([ans, question, embedding_data, model])
 
         ids = self.s.batch_insert(cache_datas)
+        datas_ = [VectorData(id=ids[i], data=embedding_data.astype("float32")) for i, embedding_data in enumerate(embedding_datas)]
         self.v.mul_add(
-            [
-                VectorData(id=ids[i], data=embedding_data)
-                for i, embedding_data in enumerate(embedding_datas)
-            ],
+            datas_,
             model
 
         )
@@ -235,7 +238,8 @@ class SSDataManager(DataManager):
 
     def search(self, embedding_data, **kwargs):
         model = kwargs.pop("model", None)
-        embedding_data = normalize(embedding_data)
+        if NORMALIZE:
+            embedding_data = normalize(embedding_data)
         top_k = kwargs.get("top_k", -1)
         return self.v.search(data=embedding_data, top_k=top_k, model=model)
 

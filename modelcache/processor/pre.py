@@ -64,7 +64,7 @@ def query_multi_splicing(data: Dict[str, Any], **_: Dict[str, Any]) -> Any:
 
 
 def insert_multi_splicing(data: Dict[str, Any], **_: Dict[str, Any]) -> Any:
-    insert_query_list = data.get("chat_info")[-1]['query']
+    insert_query_list = data['query']
     return multi_splicing(insert_query_list)
 
 
