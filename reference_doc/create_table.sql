@@ -1,5 +1,9 @@
-CREATE TABLE `modelcache_llm_answer` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT comment '主键',
+CREATE DATABASE IF NOT EXISTS `modelcache`;
+
+USE `modelcache`;
+
+CREATE TABLE IF NOT EXISTS `modelcache_llm_answer` (
+  `id` CHAR(36) comment '主键',
   `gmt_create` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '修改时间',
   `question` text NOT NULL comment 'question',
@@ -12,8 +16,7 @@ CREATE TABLE `modelcache_llm_answer` (
   PRIMARY KEY(`id`)
 ) AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COMMENT = 'cache_codegpt_answer';
 
-
-CREATE TABLE `modelcache_query_log` (
+CREATE TABLE IF NOT EXISTS `modelcache_query_log` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '修改时间',

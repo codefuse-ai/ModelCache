@@ -66,6 +66,8 @@ class Milvus(VectorBase):
         self.search_params = (
             search_params or self.SEARCH_PARAM[self.index_params["index_type"]]
         )
+        self.collections = dict()
+
 
     def _connect(self, host, port, user, password, secure):
         try:
@@ -87,12 +89,14 @@ class Milvus(VectorBase):
                 timeout=10
             )
 
+
     def _create_collection(self, collection_name):
         if not utility.has_collection(collection_name, using=self.alias):
             schema = [
                 FieldSchema(
                     name="id",
-                    dtype=DataType.INT64,
+                    dtype=DataType.VARCHAR,
+                    max_length=36,
                     is_primary=True,
                     auto_id=False,
                 ),
@@ -101,7 +105,8 @@ class Milvus(VectorBase):
                 ),
             ]
             schema = CollectionSchema(schema)
-            self.col = Collection(
+
+            new_collection = Collection(
                 collection_name,
                 schema=schema,
                 consistency_level="Session",
@@ -109,46 +114,48 @@ class Milvus(VectorBase):
             )
         else:
             modelcache_log.warning("The %s collection already exists, and it will be used directly.", collection_name)
-            self.col = Collection(
+            new_collection = Collection(
                 collection_name, consistency_level="Session", using=self.alias
             )
 
-        if len(self.col.indexes) == 0:
+        self.collections[collection_name] = new_collection
+
+        if len(new_collection.indexes) == 0:
             try:
                 modelcache_log.info("Attempting creation of Milvus index.")
-                self.col.create_index("embedding", index_params=self.index_params)
+                new_collection.create_index("embedding", index_params=self.index_params)
                 modelcache_log.info("Creation of Milvus index successful.")
             except MilvusException as e:
                 modelcache_log.warning("Error with building index: %s, and attempting creation of default index.", e)
                 i_p = {"metric_type": "L2", "index_type": "AUTOINDEX", "params": {}}
-                self.col.create_index("embedding", index_params=i_p)
+                new_collection.create_index("embedding", index_params=i_p)
                 self.index_params = i_p
         else:
-            self.index_params = self.col.indexes[0].to_dict()["index_param"]
+            self.index_params = new_collection.indexes[0].to_dict()["index_param"]
 
-        self.col.load()
+        new_collection.load()
+
 
     def _get_collection(self, collection_name):
-        self.col = Collection(
-            collection_name, consistency_level="Session", using=self.alias
-            )
-        self.col.load()
+        if collection_name not in self.collections:
+            self._create_collection(collection_name)
+        return self.collections[collection_name]
 
     def mul_add(self, datas: List[VectorData], model=None):
         collection_name_model = self.collection_name + '_' + model
-        self._create_collection(collection_name_model)
-
+        col = self._get_collection(collection_name_model)
         data_array, id_array = map(list, zip(*((data.data, data.id) for data in datas)))
         np_data = np.array(data_array).astype("float32")
         entities = [id_array, np_data]
-        self.col.insert(entities)
+        col.insert(entities)
+
 
     def search(self, data: np.ndarray, top_k: int = -1, model=None):
         if top_k == -1:
             top_k = self.top_k
         collection_name_model = self.collection_name + '_' + model
-        self._create_collection(collection_name_model)
-        search_result = self.col.search(
+        col = self._get_collection(collection_name_model)
+        search_result = col.search(
             data=data.reshape(1, -1).tolist(),
             anns_field="embedding",
             param=self.search_params,
@@ -156,12 +163,13 @@ class Milvus(VectorBase):
         )
         return list(zip(search_result[0].distances, search_result[0].ids))
 
+
     def delete(self, ids, model=None):
         collection_name_model = self.collection_name + '_' + model
-        self._get_collection(collection_name_model)
+        col = self._get_collection(collection_name_model)
 
         del_ids = ",".join([str(x) for x in ids])
-        resp = self.col.delete(f"id in [{del_ids}]")
+        resp = col.delete(f"id in [{del_ids}]")
         delete_count = resp.delete_count
         return delete_count
 
@@ -178,10 +186,12 @@ class Milvus(VectorBase):
             logging.info('create_collection: {}'.format(e))
 
     def rebuild(self, ids=None):  # pylint: disable=unused-argument
-        self.col.compact()
+        for col in self.collections.values():
+            col.compact()
 
     def flush(self):
-        self.col.flush(_async=True)
+        for col in self.collections.values():
+            col.flush(_async=True)
 
     def close(self):
         self.flush()

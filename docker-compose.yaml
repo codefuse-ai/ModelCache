@@ -1,7 +1,7 @@
 name: "modelcache"
 services:
   mysql:
-    image: mysql:9.3.0
+    image: mysql:8.0.23
     container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: 'root'

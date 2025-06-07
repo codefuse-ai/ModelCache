@@ -11,7 +11,7 @@ USE_RERANKER = False  # 如果为 True 则启用 reranker，否则使用原有�
 
 def adapt_query(cache_data_convert, *args, **kwargs):
     chat_cache = kwargs.pop("cache_obj", cache)
-    scope = kwargs.pop("scope", None)
+    scope = kwargs.pop("scope")
     model = scope['model']
     if not chat_cache.has_init:
         raise NotInitError()
