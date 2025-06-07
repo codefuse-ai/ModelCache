@@ -6,6 +6,8 @@ import configparser
 import json
 from modelcache import cache
 from modelcache.adapter import adapter
+from modelcache.embedding.mpnet_base import MPNet_Base
+from modelcache.manager.vector_data import manager
 from modelcache.manager import CacheBase, VectorBase, get_data_manager, data_manager
 from modelcache.similarity_evaluation.distance import SearchDistanceEvaluation
 from modelcache.processor.pre import query_multi_splicing
@@ -30,9 +32,17 @@ def save_query_info(result, model, query, delta_time_log):
 def response_hitquery(cache_resp):
     return cache_resp['hitQuery']
 
-data2vec = Data2VecAudio()
-embedding_func = data2vec.to_embeddings
-dimension = data2vec.dimension
+manager.MPNet_base = True
+
+if manager.MPNet_base:
+    mpnet_base = MPNet_Base()
+    embedding_func = lambda x: mpnet_base.embedding_func(x)
+    dimension =  mpnet_base.dimension
+    data_manager.NORMALIZE = False
+else:
+    data2vec = Data2VecAudio()
+    embedding_func = data2vec.to_embeddings
+    dimension = data2vec.dimension
 
 mysql_config = configparser.ConfigParser()
 mysql_config.read('modelcache/config/mysql_config.ini')
@@ -49,8 +59,30 @@ milvus_config.read('modelcache/config/milvus_config.ini')
 # chromadb_config = configparser.ConfigParser()
 # chromadb_config.read('modelcache/config/chromadb_config.ini')
 
-data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),
-                                VectorBase("milvus", dimension=dimension, milvus_config=milvus_config))
+data_manager = get_data_manager(
+    CacheBase("mysql", config=mysql_config),
+    VectorBase("milvus",
+               dimension=dimension,
+               milvus_config=milvus_config,
+               index_params={
+                   "metric_type": "COSINE",
+                   "index_type": "HNSW",
+                   "params": {"M": 16, "efConstruction": 64},
+                } if manager.MPNet_base else None,
+                search_params={
+                    "IVF_FLAT": {"metric_type": "COSINE", "params": {"nprobe": 10}},
+                    "IVF_SQ8": {"metric_type": "COSINE", "params": {"nprobe": 10}},
+                    "IVF_PQ": {"metric_type": "COSINE", "params": {"nprobe": 10}},
+                    "HNSW": {"metric_type": "COSINE", "params": {"ef": 10}},
+                    "RHNSW_FLAT": {"metric_type": "COSINE", "params": {"ef": 10}},
+                    "RHNSW_SQ": {"metric_type": "COSINE", "params": {"ef": 10}},
+                    "RHNSW_PQ": {"metric_type": "COSINE", "params": {"ef": 10}},
+                    "IVF_HNSW": {"metric_type": "COSINE", "params": {"nprobe": 10, "ef": 10}},
+                    "ANNOY": {"metric_type": "COSINE", "params": {"search_k": 10}},
+                    "AUTOINDEX": {"metric_type": "COSINE", "params": {}},
+                } if manager.MPNet_base else None
+    )
+)
 
 
 # data_manager = get_data_manager(CacheBase("mysql", config=mysql_config),

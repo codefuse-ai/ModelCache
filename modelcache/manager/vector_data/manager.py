@@ -17,6 +17,8 @@ MILVUS_INDEX_PARAMS = {
 
 COLLECTION_NAME = "modelcache"
 
+MPNet_base = False # whether to use MPNet base model for embedding, if True, will use cosine similarity evaluation in milvus
+
 
 class VectorBase:
     """

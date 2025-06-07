@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
 import time
+
 from modelcache import cache
 from modelcache.utils.error import NotInitError
 from modelcache.utils.time import time_cal
 from modelcache.processor.pre import multi_analysis
 from FlagEmbedding import FlagReranker
+from modelcache.manager.vector_data import manager
 
 USE_RERANKER = False  # 如果为 True 则启用 reranker，否则使用原有逻辑
 
@@ -44,39 +46,47 @@ def adapt_query(cache_data_convert, *args, **kwargs):
         cache_answers = []
         cache_questions = []
         cache_ids = []
-        similarity_threshold = chat_cache.config.similarity_threshold
-        similarity_threshold_long = chat_cache.config.similarity_threshold_long
+        cosine_similarity = cache_data_list[0][0]
 
-        min_rank, max_rank = chat_cache.similarity_evaluation.range()
-        rank_threshold = (max_rank - min_rank) * similarity_threshold * cache_factor
-        rank_threshold_long = (max_rank - min_rank) * similarity_threshold_long * cache_factor
-        rank_threshold = (
-            max_rank
-            if rank_threshold > max_rank
-            else min_rank
-            if rank_threshold < min_rank
-            else rank_threshold
-        )
-        rank_threshold_long = (
-            max_rank
-            if rank_threshold_long > max_rank
-            else min_rank
-            if rank_threshold_long < min_rank
-            else rank_threshold_long
-        )
-        if cache_data_list is None or len(cache_data_list) == 0:
-            rank_pre = -1.0
+        if manager.MPNet_base:
+            # This code uses the built-in cosine similarity evaluation in milvus
+            if cosine_similarity < 0.9:
+                return None
         else:
-            cache_data_dict = {'search_result': cache_data_list[0]}
-            rank_pre = chat_cache.similarity_evaluation.evaluation(
-                None,
-                cache_data_dict,
-                extra_param=context.get("evaluation_func", None),
-            )
-        if rank_pre < rank_threshold:
-            return None
+            ## this is the code that uses L2 for similarity evaluation
+            similarity_threshold = chat_cache.config.similarity_threshold
+            similarity_threshold_long = chat_cache.config.similarity_threshold_long
 
-        if USE_RERANKER:
+            min_rank, max_rank = chat_cache.similarity_evaluation.range()
+            rank_threshold = (max_rank - min_rank) * similarity_threshold * cache_factor
+            rank_threshold_long = (max_rank - min_rank) * similarity_threshold_long * cache_factor
+            rank_threshold = (
+                max_rank
+                if rank_threshold > max_rank
+                else min_rank
+                if rank_threshold < min_rank
+                else rank_threshold
+            )
+            rank_threshold_long = (
+                max_rank
+                if rank_threshold_long > max_rank
+                else min_rank
+                if rank_threshold_long < min_rank
+                else rank_threshold_long
+            )
+            if cache_data_list is None or len(cache_data_list) == 0:
+                rank_pre = -1.0
+            else:
+                cache_data_dict = {'search_result': cache_data_list[0]}
+                rank_pre = chat_cache.similarity_evaluation.evaluation(
+                    None,
+                    cache_data_dict,
+                    extra_param=context.get("evaluation_func", None),
+                )
+            if rank_pre < rank_threshold:
+                return None
+
+        if USE_RERANKER and not manager.MPNet_base:
             reranker = FlagReranker('BAAI/bge-reranker-v2-m3', use_fp16=False)
             for cache_data in cache_data_list:
                 primary_id = cache_data[1]
@@ -132,45 +142,50 @@ def adapt_query(cache_data_convert, *args, **kwargs):
                 if ret is None:
                     continue
 
-                if "deps" in context and hasattr(ret.question, "deps"):
-                    eval_query_data = {
-                        "question": context["deps"][0]["data"],
-                        "embedding": None
-                    }
-                    eval_cache_data = {
-                        "question": ret.question.deps[0].data,
-                        "answer": ret.answers[0].answer,
-                        "search_result": cache_data,
-                        "embedding": None,
-                    }
+                if manager.MPNet_base:
+                    cache_answers.append((cosine_similarity, ret[1]))
+                    cache_questions.append((cosine_similarity, ret[0]))
+                    cache_ids.append((cosine_similarity, primary_id))
                 else:
-                    eval_query_data = {
-                        "question": pre_embedding_data,
-                        "embedding": embedding_data,
-                    }
+                    if "deps" in context and hasattr(ret.question, "deps"):
+                        eval_query_data = {
+                            "question": context["deps"][0]["data"],
+                            "embedding": None
+                        }
+                        eval_cache_data = {
+                            "question": ret.question.deps[0].data,
+                            "answer": ret.answers[0].answer,
+                            "search_result": cache_data,
+                            "embedding": None,
+                        }
+                    else:
+                        eval_query_data = {
+                            "question": pre_embedding_data,
+                            "embedding": embedding_data,
+                        }
 
-                    eval_cache_data = {
-                        "question": ret[0],
-                        "answer": ret[1],
-                        "search_result": cache_data,
-                        "embedding": None
-                    }
-                rank = chat_cache.similarity_evaluation.evaluation(
-                    eval_query_data,
-                    eval_cache_data,
-                    extra_param=context.get("evaluation_func", None),
-                )
+                        eval_cache_data = {
+                            "question": ret[0],
+                            "answer": ret[1],
+                            "search_result": cache_data,
+                            "embedding": None
+                        }
+                    rank = chat_cache.similarity_evaluation.evaluation(
+                        eval_query_data,
+                        eval_cache_data,
+                        extra_param=context.get("evaluation_func", None),
+                    )
 
-                if len(pre_embedding_data) <= 256:
-                    if rank_threshold <= rank:
-                        cache_answers.append((rank, ret[1]))
-                        cache_questions.append((rank, ret[0]))
-                        cache_ids.append((rank, primary_id))
-                else:
-                    if rank_threshold_long <= rank:
-                        cache_answers.append((rank, ret[1]))
-                        cache_questions.append((rank, ret[0]))
-                        cache_ids.append((rank, primary_id))
+                    if len(pre_embedding_data) <= 256:
+                        if rank_threshold <= rank:
+                            cache_answers.append((rank, ret[1]))
+                            cache_questions.append((rank, ret[0]))
+                            cache_ids.append((rank, primary_id))
+                    else:
+                        if rank_threshold_long <= rank:
+                            cache_answers.append((rank, ret[1]))
+                            cache_questions.append((rank, ret[0]))
+                            cache_ids.append((rank, primary_id))
 
         cache_answers = sorted(cache_answers, key=lambda x: x[0], reverse=True)
         cache_questions = sorted(cache_questions, key=lambda x: x[0], reverse=True)
