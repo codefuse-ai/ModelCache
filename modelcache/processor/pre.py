@@ -4,7 +4,7 @@ from typing import Dict, Any
 
 
 def insert_last_content(data: Dict[str, Any], **_: Dict[str, Any]) -> Any:
-    return data.get("chat_info")[-1]["query"]
+    return data.get("query")[-1]["content"]
 
 
 def query_last_content(data: Dict[str, Any], **_: Dict[str, Any]) -> Any:
@@ -67,6 +67,11 @@ def insert_multi_splicing(data: Dict[str, Any], **_: Dict[str, Any]) -> Any:
     insert_query_list = data['query']
     return multi_splicing(insert_query_list)
 
+def query_with_role(data: Dict[str, Any], **_: Dict[str, Any]) -> Any:
+    query = data["query"][-1]
+    content = query["content"]
+    role = query["role"]
+    return role+": "+content
 
 def multi_splicing(data_list) -> Any:
     result_str = ""

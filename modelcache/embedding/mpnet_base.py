@@ -5,7 +5,7 @@ class MPNet_Base:
         self.dimension = 768
         self.model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
-    def embedding_func(self, *args, **kwargs):
+    def to_embeddings(self, *args, **kwargs):
         if not args:
             raise ValueError("No word provided for embedding.")
         embeddings = self.model.encode(args)

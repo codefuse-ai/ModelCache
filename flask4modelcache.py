@@ -10,8 +10,7 @@ from modelcache.embedding.mpnet_base import MPNet_Base
 from modelcache.manager.vector_data import manager
 from modelcache.manager import CacheBase, VectorBase, get_data_manager, data_manager
 from modelcache.similarity_evaluation.distance import SearchDistanceEvaluation
-from modelcache.processor.pre import query_multi_splicing
-from modelcache.processor.pre import insert_multi_splicing
+from modelcache.processor.pre import query_multi_splicing,insert_multi_splicing, query_with_role
 from concurrent.futures import ThreadPoolExecutor
 from modelcache.utils.model_filter import model_blacklist_filter
 from modelcache.embedding import Data2VecAudio
@@ -36,13 +35,17 @@ manager.MPNet_base = True
 
 if manager.MPNet_base:
     mpnet_base = MPNet_Base()
-    embedding_func = lambda x: mpnet_base.embedding_func(x)
+    embedding_func = mpnet_base.to_embeddings
     dimension =  mpnet_base.dimension
     data_manager.NORMALIZE = False
+    query_pre_embedding_func=query_with_role
+    insert_pre_embedding_func=query_with_role
 else:
     data2vec = Data2VecAudio()
     embedding_func = data2vec.to_embeddings
     dimension = data2vec.dimension
+    query_pre_embedding_func=query_multi_splicing
+    insert_pre_embedding_func=insert_multi_splicing
 
 mysql_config = configparser.ConfigParser()
 mysql_config.read('modelcache/config/mysql_config.ini')
@@ -95,8 +98,8 @@ cache.init(
     embedding_func=embedding_func,
     data_manager=data_manager,
     similarity_evaluation=SearchDistanceEvaluation(),
-    query_pre_embedding_func=query_multi_splicing,
-    insert_pre_embedding_func=insert_multi_splicing,
+    query_pre_embedding_func=query_pre_embedding_func,
+    insert_pre_embedding_func=insert_pre_embedding_func,
 )
 
 global executor
