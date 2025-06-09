@@ -20,6 +20,7 @@ class ChatCompletion(object):
                 **kwargs
             )
         except Exception as e:
+            print(e)
             return str(e)
 
     @classmethod
@@ -41,7 +42,7 @@ class ChatCompletion(object):
                 **kwargs
             )
         except Exception as e:
-            logging.info('adapt_remove_e: {}'.format(e))
+            print(e)
             return str(e)
 
     @classmethod
@@ -52,6 +53,7 @@ class ChatCompletion(object):
                 **kwargs
             )
         except Exception as e:
+            print(e)
             return str(e)
 
 

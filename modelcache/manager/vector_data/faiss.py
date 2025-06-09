@@ -2,13 +2,13 @@
 import os
 from typing import List
 import numpy as np
-from modelcache.manager.vector_data.base import VectorBase, VectorData
+from modelcache.manager.vector_data.base import VectorStorage, VectorData
 from modelcache.utils import import_faiss
 import_faiss()
 import faiss  # pylint: disable=C0413
 
 
-class Faiss(VectorBase):
+class Faiss(VectorStorage):
     def __init__(self, index_file_path, dimension, top_k):
         self._index_file_path = index_file_path
         self._dimension = dimension

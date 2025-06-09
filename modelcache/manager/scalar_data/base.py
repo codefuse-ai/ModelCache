@@ -5,6 +5,9 @@ from typing import Union, Dict, List, Optional, Any
 from enum import IntEnum
 import numpy as np
 
+from modelcache.utils import import_sql_client
+from modelcache.utils.error import NotFoundError
+
 
 class DataType(IntEnum):
     STR = 0
@@ -107,7 +110,7 @@ class CacheStorage(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def model_deleted(self, model_name):
+    def model_deleted(self, model):
         pass
 
     @abstractmethod
@@ -122,6 +125,7 @@ class CacheStorage(metaclass=ABCMeta):
     def count(self):
         pass
 
+    @abstractmethod
     def flush(self):
         pass
 
@@ -132,4 +136,28 @@ class CacheStorage(metaclass=ABCMeta):
     @abstractmethod
     def batch_insert(self, all_data: List[CacheData]):
         pass
+
+    @abstractmethod
+    def update_hit_count_by_id(self, primary_id):
+        pass
+
+    @staticmethod
+    def get(name, **kwargs):
+        if name in ["mysql", "oceanbase"]:
+            from modelcache.manager.scalar_data.sql_storage import SQLStorage
+            config = kwargs.get("config")
+            import_sql_client(name)
+            cache_base = SQLStorage(db_type=name, config=config)
+        elif name == 'sqlite':
+            SQL_URL = {"sqlite": "./sqlite.db"}
+            from modelcache.manager.scalar_data.sql_storage_sqlite import SQLStorage
+            sql_url = kwargs.get("sql_url", SQL_URL[name])
+            cache_base = SQLStorage(db_type=name, url=sql_url)
+        elif name == 'elasticsearch':
+            from modelcache.manager.scalar_data.sql_storage_es import SQLStorage
+            config = kwargs.get("config")
+            cache_base = SQLStorage(db_type=name, config=config)
+        else:
+            raise NotFoundError("cache store", name)
+        return cache_base
 

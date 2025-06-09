@@ -12,6 +12,7 @@ from DBUtils.PooledDB import PooledDB
 
 
 class SQLStorage(CacheStorage):
+
     def __init__(
         self,
         db_type: str = "mysql",
@@ -279,4 +280,7 @@ class SQLStorage(CacheStorage):
         pass
 
     def count_answers(self):
+        pass
+
+    def flush(self):
         pass

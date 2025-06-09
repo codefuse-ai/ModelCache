@@ -6,26 +6,15 @@ import pickle
 import numpy as np
 import cachetools
 from abc import abstractmethod, ABCMeta
-from typing import List, Any, Optional, Union
-
-from numpy import ndarray
-
-from modelcache.manager.scalar_data.base import (
-    CacheStorage,
-    CacheData,
-    DataType,
-    Answer,
-    Question
-)
+from typing import List, Any, Optional
+from typing import Union, Callable
+from modelcache.manager.scalar_data.base import CacheStorage,CacheData,DataType,Answer,Question
 from modelcache.utils.error import CacheError, ParamError
-from modelcache.manager.vector_data.base import VectorBase, VectorData
+from modelcache.manager.vector_data.base import VectorStorage, VectorData
 from modelcache.manager.object_data.base import ObjectBase
-from modelcache.manager.eviction import EvictionBase
-from modelcache.manager.eviction_manager import EvictionManager
 from modelcache.manager.eviction.memory_cache import MemoryCacheEviction
 from modelcache.utils.log import modelcache_log
 
-NORMALIZE = True
 
 class DataManager(metaclass=ABCMeta):
     """DataManager manage the cache data, including save and search"""
@@ -61,15 +50,41 @@ class DataManager(metaclass=ABCMeta):
     def delete(self, id_list, **kwargs):
         pass
 
+    @abstractmethod
     def truncate(self, model_name):
         pass
 
+    @abstractmethod
     def flush(self):
         pass
 
     @abstractmethod
     def close(self):
         pass
+
+    @staticmethod
+    def get(
+            cache_base: Union[CacheStorage, str] = None,
+            vector_base: Union[VectorStorage, str] = None,
+            object_base: Union[ObjectBase, str] = None,
+            max_size: int = 3,
+            clean_size: int = 1,
+            eviction: str = "ARC",
+            data_path: str = "data_map.txt",
+            get_data_container: Callable = None,
+            normalize: bool = True
+    ):
+        if not cache_base and not vector_base:
+            return MapDataManager(data_path, max_size, get_data_container)
+
+        if isinstance(cache_base, str):
+            cache_base = CacheStorage.get(name=cache_base)
+        if isinstance(vector_base, str):
+            vector_base = VectorStorage.get(name=vector_base)
+        if isinstance(object_base, str):
+            object_base = ObjectBase.get(name=object_base)
+        assert cache_base and vector_base
+        return SSDataManager(cache_base, vector_base, object_base, max_size, clean_size,normalize, eviction)
 
 
 class MapDataManager(DataManager):
@@ -149,10 +164,11 @@ class SSDataManager(DataManager):
     def __init__(
         self,
         s: CacheStorage,
-        v: VectorBase,
+        v: VectorStorage,
         o: Optional[ObjectBase],
         max_size,
         clean_size,
+        normalize: bool,
         policy="LRU",
     ):
         self.max_size = max_size
@@ -160,6 +176,7 @@ class SSDataManager(DataManager):
         self.s = s
         self.v = v
         self.o = o
+        self.normalize = normalize
 
         # added
         self.eviction_base = MemoryCacheEviction(
@@ -208,7 +225,7 @@ class SSDataManager(DataManager):
             raise ParamError("Make sure that all parameters have the same length")
         cache_datas = []
 
-        if NORMALIZE:
+        if self.normalize:
             embedding_datas = [
                 normalize(embedding_data) for embedding_data in embedding_datas
             ]
@@ -251,7 +268,7 @@ class SSDataManager(DataManager):
 
     def search(self, embedding_data, **kwargs):
         model = kwargs.pop("model", None)
-        if NORMALIZE:
+        if self.normalize:
             embedding_data = normalize(embedding_data)
         top_k = kwargs.get("top_k", -1)
         return self.v.search(data=embedding_data, top_k=top_k, model=model)
@@ -330,8 +347,3 @@ class SSDataManager(DataManager):
         self.s.close()
         self.v.close()
 
-
-# if __name__ == '__main__':
-#     from modelcache.manager import CacheBase, VectorBase, get_data_manager
-#     data_manager = get_data_manager(CacheBase('mysql'), VectorBase('milvus', dimension=128))
-#     data_manager.save('hello', 'hi', np.random.random((128,)).astype('float32'), model='gptcode_6b')

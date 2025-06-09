@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 import logging
-from modelcache.manager.vector_data.base import VectorBase, VectorData
+from modelcache.manager.vector_data.base import VectorStorage, VectorData
 from modelcache.utils import import_chromadb, import_torch
 
 import_torch()
@@ -11,7 +11,7 @@ import_chromadb()
 import chromadb
 
 
-class Chromadb(VectorBase):
+class Chromadb(VectorStorage):
 
     def __init__(
             self,

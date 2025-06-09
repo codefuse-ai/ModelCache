@@ -28,6 +28,8 @@ class MemoryCacheEviction(EvictionBase):
         self.kwargs = kwargs
 
     def create_cache(self, model: str):
+
+        ################# Not integrated with on_evict yet #######################
         if self._policy == "LRU":
             cache = cachetools.LRUCache(maxsize=self.maxsize, **self.kwargs)
         elif self._policy == "LFU":
@@ -36,6 +38,8 @@ class MemoryCacheEviction(EvictionBase):
             cache = cachetools.FIFOCache(maxsize=self.maxsize, **self.kwargs)
         elif self._policy == "RR":
             cache = cachetools.RRCache(maxsize=self.maxsize, **self.kwargs)
+        ###########################################################################
+
         elif self._policy == "WTINYLFU":
             cache = W2TinyLFU(maxsize=self.maxsize, on_evict=lambda x: self.on_evict(x,model=model))
         elif self._policy == "ARC":

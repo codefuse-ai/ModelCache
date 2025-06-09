@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-from modelcache import cache
 
 
 def adapt_register(*args, **kwargs):
-    chat_cache = kwargs.pop("cache_obj", cache)
+    chat_cache = kwargs.pop("cache_obj")
     model = kwargs.pop("model", None)
     if model is None or len(model) == 0:
         return ValueError('')

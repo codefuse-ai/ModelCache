@@ -3,9 +3,11 @@ import logging
 from typing import List
 from uuid import uuid4
 import numpy as np
+
+from modelcache.embedding import MetricType
 from modelcache.utils import import_pymilvus
 from modelcache.utils.log import modelcache_log
-from modelcache.manager.vector_data.base import VectorBase, VectorData
+from modelcache.manager.vector_data.base import VectorStorage, VectorData
 
 
 import_pymilvus()
@@ -21,19 +23,7 @@ from pymilvus import (  # pylint: disable=C0413
 )
 
 
-class Milvus(VectorBase):
-    SEARCH_PARAM = {
-        "IVF_FLAT": {"metric_type": "L2", "params": {"nprobe": 10}},
-        "IVF_SQ8": {"metric_type": "L2", "params": {"nprobe": 10}},
-        "IVF_PQ": {"metric_type": "L2", "params": {"nprobe": 10}},
-        "HNSW": {"metric_type": "L2", "params": {"ef": 10}},
-        "RHNSW_FLAT": {"metric_type": "L2", "params": {"ef": 10}},
-        "RHNSW_SQ": {"metric_type": "L2", "params": {"ef": 10}},
-        "RHNSW_PQ": {"metric_type": "L2", "params": {"ef": 10}},
-        "IVF_HNSW": {"metric_type": "L2", "params": {"nprobe": 10, "ef": 10}},
-        "ANNOY": {"metric_type": "L2", "params": {"search_k": 10}},
-        "AUTOINDEX": {"metric_type": "L2", "params": {}},
-    }
+class Milvus(VectorStorage):
 
     def __init__(
         self,
@@ -48,7 +38,8 @@ class Milvus(VectorBase):
         index_params: dict = None,
         search_params: dict = None,
         local_mode: bool = False,
-        local_data: str = "./milvus_data"
+        local_data: str = "./milvus_data",
+        metric_type: MetricType = MetricType.COSINE,
     ):
         if dimension <= 0:
             raise ValueError(
@@ -58,14 +49,27 @@ class Milvus(VectorBase):
         self._local_data = local_data
         self.dimension = dimension
         self.top_k = top_k
-        self.index_params = index_params
         if self._local_mode:
             self._create_local(port, local_data)
         self._connect(host, port, user, password, secure)
         self.collection_name = collection_name
-        self.search_params = (
-            search_params or self.SEARCH_PARAM[self.index_params["index_type"]]
-        )
+        self.search_params = {
+            "IVF_FLAT": {"metric_type": metric_type.value, "params": {"nprobe": 10}},
+            "IVF_SQ8": {"metric_type": metric_type.value, "params": {"nprobe": 10}},
+            "IVF_PQ": {"metric_type": metric_type.value, "params": {"nprobe": 10}},
+            "HNSW": {"metric_type": metric_type.value, "params": {"ef": 10}},
+            "RHNSW_FLAT": {"metric_type": metric_type.value, "params": {"ef": 10}},
+            "RHNSW_SQ": {"metric_type": metric_type.value, "params": {"ef": 10}},
+            "RHNSW_PQ": {"metric_type": metric_type.value, "params": {"ef": 10}},
+            "IVF_HNSW": {"metric_type": metric_type.value, "params": {"nprobe": 10, "ef": 10}},
+            "ANNOY": {"metric_type": metric_type.value, "params": {"search_k": 10}},
+            "AUTOINDEX": {"metric_type": metric_type.value, "params": {}},
+        }
+        self.index_params ={
+            "metric_type": metric_type.value,
+            "index_type": "HNSW",
+            "params": {"M": 16, "efConstruction": 64},
+        }
         self.collections = dict()
 
 
