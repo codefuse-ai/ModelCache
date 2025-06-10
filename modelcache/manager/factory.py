@@ -8,9 +8,9 @@ def get_data_manager(
     cache_base: Union[CacheBase, str] = None,
     vector_base: Union[VectorBase, str] = None,
     object_base: Union[ObjectBase, str] = None,
-    max_size: int = 1000,
-    clean_size: int = None,
-    eviction: str = "LRU",
+    max_size: int = 3,
+    clean_size: int = 1,
+    eviction: str = "ARC",
     data_path: str = "data_map.txt",
     get_data_container: Callable = None,
 ):

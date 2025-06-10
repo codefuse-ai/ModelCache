@@ -131,7 +131,7 @@ class SQLStorage(CacheStorage):
     def get_data_by_id(self, key: int):
         table_name = "modelcache_llm_answer"
         query_sql = f"""
-            SELECT question, answer, embedding_data, model
+            SELECT answer, question, embedding_data, model
             FROM {table_name}
             WHERE id = %s
         """

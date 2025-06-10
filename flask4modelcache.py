@@ -84,7 +84,9 @@ data_manager = get_data_manager(
                     "ANNOY": {"metric_type": "COSINE", "params": {"search_k": 10}},
                     "AUTOINDEX": {"metric_type": "COSINE", "params": {}},
                 } if manager.MPNet_base else None
-    )
+    ),
+    eviction='WTINYLFU',
+    max_size=100000
 )
 
 

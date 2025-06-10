@@ -168,7 +168,7 @@ class Milvus(VectorBase):
         collection_name_model = self.collection_name + '_' + model
         col = self._get_collection(collection_name_model)
 
-        del_ids = ",".join([str(x) for x in ids])
+        del_ids = ",".join([f'"{x}"' for x in ids])
         resp = col.delete(f"id in [{del_ids}]")
         delete_count = resp.delete_count
         return delete_count

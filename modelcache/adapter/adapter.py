@@ -30,6 +30,7 @@ class ChatCompletion(object):
                 **kwargs
             )
         except Exception as e:
+            print(e)
             return str(e)
 
     @classmethod

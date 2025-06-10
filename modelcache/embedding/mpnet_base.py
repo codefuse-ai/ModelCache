@@ -7,7 +7,7 @@ class MPNet_Base:
 
     def to_embeddings(self, *args, **kwargs):
         if not args:
-            raise ValueError("No word provided for embedding.")
+            raise ValueError("No data provided for embedding.")
         embeddings = self.model.encode(args)
         return embeddings[0] if len(args) == 1 else embeddings
 

@@ -128,3 +128,8 @@ class CacheStorage(metaclass=ABCMeta):
     @abstractmethod
     def close(self):
         pass
+
+    @abstractmethod
+    def batch_insert(self, all_data: List[CacheData]):
+        pass
+

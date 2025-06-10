@@ -22,6 +22,7 @@ from modelcache.manager.vector_data.base import VectorBase, VectorData
 from modelcache.manager.object_data.base import ObjectBase
 from modelcache.manager.eviction import EvictionBase
 from modelcache.manager.eviction_manager import EvictionManager
+from modelcache.manager.eviction.memory_cache import MemoryCacheEviction
 from modelcache.utils.log import modelcache_log
 
 NORMALIZE = True
@@ -38,9 +39,7 @@ class DataManager(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def import_data(
-        self, questions: List[Any], answers: List[Any], embedding_datas: List[Any], model:Any
-    ):
+    def import_data(self, questions: List[Any], answers: List[Any], embedding_datas: List[Any], model:Any):
         pass
 
     @abstractmethod
@@ -162,9 +161,17 @@ class SSDataManager(DataManager):
         self.v = v
         self.o = o
 
+        # added
+        self.eviction_base = MemoryCacheEviction(
+            policy=policy,
+            maxsize=max_size,
+            clean_size=clean_size,
+            on_evict=self._evict_ids)
+
     def save(self, questions: List[any], answers: List[any], embedding_datas: List[any], **kwargs):
         model = kwargs.pop("model", None)
         self.import_data(questions, answers, embedding_datas, model)
+
 
     def save_query_resp(self, query_resp_dict, **kwargs):
         save_query_start_time = time.time()
@@ -217,14 +224,20 @@ class SSDataManager(DataManager):
             cache_datas.append([ans, question, embedding_data, model])
 
         ids = self.s.batch_insert(cache_datas)
-        datas_ = [VectorData(id=ids[i], data=embedding_data.astype("float32")) for i, embedding_data in enumerate(embedding_datas)]
-        self.v.mul_add(
-            datas_,
-            model
-
-        )
+        datas = []
+        for i, embedding_data in enumerate(embedding_datas):
+            _id = ids[i]
+            datas.append(VectorData(id=_id, data=embedding_data.astype("float32")))
+            self.eviction_base.put([(_id, cache_datas[i])],model=model)
+        self.v.mul_add(datas,model)
 
     def get_scalar_data(self, res_data, **kwargs) -> Optional[CacheData]:
+        model = kwargs.pop("model")
+        #Get Data from RAM Cache
+        _id = res_data[1]
+        cache_hit = self.eviction_base.get(_id, model=model)
+        if cache_hit is not None:
+            return cache_hit
         cache_data = self.s.get_data_by_id(res_data[1])
         if cache_data is None:
             return None
@@ -244,8 +257,10 @@ class SSDataManager(DataManager):
         return self.v.search(data=embedding_data, top_k=top_k, model=model)
 
     def delete(self, id_list, **kwargs):
-        model = kwargs.pop("model", None)
+        model = kwargs.pop("model")
         try:
+            for id in id_list:
+                self.eviction_base.get_cache(model).pop(id, None)  # Remove from in-memory LRU too
             v_delete_count = self.v.delete(ids=id_list, model=model)
         except Exception as e:
             return {'status': 'failed', 'milvus': 'delete milvus data failed, please check! e: {}'.format(e),
@@ -262,10 +277,13 @@ class SSDataManager(DataManager):
     def create_index(self, model, **kwargs):
         return self.v.create(model)
 
-    def truncate(self, model_name):
+    def truncate(self, model):
+        # drop memory cache data
+        self.eviction_base.clear(model)
+
         # drop vector base data
         try:
-            vector_resp = self.v.rebuild_col(model_name)
+            vector_resp = self.v.rebuild_col(model)
         except Exception as e:
             return {'status': 'failed', 'VectorDB': 'truncate VectorDB data failed, please check! e: {}'.format(e),
                     'ScalarDB': 'unexecuted'}
@@ -273,11 +291,36 @@ class SSDataManager(DataManager):
             return {'status': 'failed', 'VectorDB': vector_resp, 'ScalarDB': 'unexecuted'}
         # drop scalar base data
         try:
-            delete_count = self.s.model_deleted(model_name)
+            delete_count = self.s.model_deleted(model)
         except Exception as e:
             return {'status': 'failed', 'VectorDB': 'rebuild',
                     'ScalarDB': 'truncate scalar data failed, please check! e: {}'.format(e)}
         return {'status': 'success', 'VectorDB': 'rebuild', 'ScalarDB': 'delete_count: ' + str(delete_count)}
+
+    # added
+    def _evict_ids(self, ids, **kwargs):
+        model = kwargs.get("model")
+        if not ids or any(i is None for i in ids):
+            modelcache_log.warning("Skipping eviction for invalid IDs: %s", ids)
+            return
+
+        if isinstance(ids,str):
+            ids = [ids]
+
+        for _id in ids:
+            self.eviction_base.get_cache(model).pop(_id, None)
+
+        try:
+            self.s.mark_deleted(ids)
+            modelcache_log.info("Evicted from scalar storage: %s", ids)
+        except Exception as e:
+            modelcache_log.error("Failed to delete from scalar storage: %s", str(e))
+
+        try:
+            self.v.delete(ids, model=model)
+            modelcache_log.info("Evicted from vector storage (model=%s): %s", model, ids)
+        except Exception as e:
+            modelcache_log.error("Failed to delete from vector storage (model=%s): %s", model, str(e))
 
     def flush(self):
         self.s.flush()

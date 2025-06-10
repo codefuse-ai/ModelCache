@@ -91,7 +91,7 @@ def adapt_query(cache_data_convert, *args, **kwargs):
             for cache_data in cache_data_list:
                 primary_id = cache_data[1]
                 ret = chat_cache.data_manager.get_scalar_data(
-                    cache_data, extra_param=context.get("get_scalar_data", None)
+                    cache_data, extra_param=context.get("get_scalar_data", None),model=model
                 )
                 if ret is None:
                     continue
@@ -124,27 +124,27 @@ def adapt_query(cache_data_convert, *args, **kwargs):
 
                 if len(pre_embedding_data) <= 256:
                     if rank_threshold <= rank:
-                        cache_answers.append((rank, ret[1]))
-                        cache_questions.append((rank, ret[0]))
+                        cache_answers.append((rank, ret[0]))
+                        cache_questions.append((rank, ret[1]))
                         cache_ids.append((rank, primary_id))
                 else:
                     if rank_threshold_long <= rank:
-                        cache_answers.append((rank, ret[1]))
-                        cache_questions.append((rank, ret[0]))
+                        cache_answers.append((rank, ret[0]))
+                        cache_questions.append((rank, ret[1]))
                         cache_ids.append((rank, primary_id))
         else:
             # 不使用 reranker 时，走原来的逻辑
             for cache_data in cache_data_list:
                 primary_id = cache_data[1]
                 ret = chat_cache.data_manager.get_scalar_data(
-                    cache_data, extra_param=context.get("get_scalar_data", None)
+                    cache_data, extra_param=context.get("get_scalar_data", None),model=model
                 )
                 if ret is None:
                     continue
 
                 if manager.MPNet_base:
-                    cache_answers.append((cosine_similarity, ret[1]))
-                    cache_questions.append((cosine_similarity, ret[0]))
+                    cache_answers.append((cosine_similarity, ret[0]))
+                    cache_questions.append((cosine_similarity, ret[1]))
                     cache_ids.append((cosine_similarity, primary_id))
                 else:
                     if "deps" in context and hasattr(ret.question, "deps"):
@@ -178,13 +178,13 @@ def adapt_query(cache_data_convert, *args, **kwargs):
 
                     if len(pre_embedding_data) <= 256:
                         if rank_threshold <= rank:
-                            cache_answers.append((rank, ret[1]))
-                            cache_questions.append((rank, ret[0]))
+                            cache_answers.append((rank, ret[0]))
+                            cache_questions.append((rank, ret[1]))
                             cache_ids.append((rank, primary_id))
                     else:
                         if rank_threshold_long <= rank:
-                            cache_answers.append((rank, ret[1]))
-                            cache_questions.append((rank, ret[0]))
+                            cache_answers.append((rank, ret[0]))
+                            cache_questions.append((rank, ret[1]))
                             cache_ids.append((rank, primary_id))
 
         cache_answers = sorted(cache_answers, key=lambda x: x[0], reverse=True)
