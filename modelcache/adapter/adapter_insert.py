@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+import asyncio
+
 from modelcache.utils.error import NotInitError
 from modelcache.utils.time import time_cal
 
 
-def adapt_insert(*args, **kwargs):
+async def adapt_insert(*args, **kwargs):
     chat_cache = kwargs.pop("cache_obj")
     model = kwargs.pop("model", None)
     require_object_store = kwargs.pop("require_object_store", False)
@@ -13,7 +15,8 @@ def adapt_insert(*args, **kwargs):
     chat_info = kwargs.pop("chat_info", [])
 
     pre_embedding_data_list = []
-    embedding_data_list = []
+    embedding_futures_list = []
+    # embedding_data_list = []
     llm_data_list = []
 
     for row in chat_info:
@@ -24,13 +27,15 @@ def adapt_insert(*args, **kwargs):
         )
         pre_embedding_data_list.append(pre_embedding_data)
         llm_data_list.append(row['answer'])
-        embedding_data = time_cal(
+        embedding_future = time_cal(
             chat_cache.embedding_func,
             func_name="embedding",
             report_func=chat_cache.report.embedding,
             cache_obj=chat_cache
         )(pre_embedding_data)
-        embedding_data_list.append(embedding_data)
+        embedding_futures_list.append(embedding_future)
+
+    embedding_data_list = await asyncio.gather(*embedding_futures_list)
 
     chat_cache.data_manager.save(
         pre_embedding_data_list,

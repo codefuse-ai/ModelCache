@@ -17,14 +17,17 @@ class EmbeddingModel(Enum):
     """
     Enum for different embedding models.
     """
-    HUGGINGFACE = "huggingface"
-    DATA2VEC_AUDIO = "data2vec_audio"
-    LLM_EMB2VEC_AUDIO = "llmEmb2vec_audio"
-    FASTTEXT = "fasttext"
-    PADDLE_NLP = "paddlenlp"
-    TIMM = "timm"
-    HUGGINGFACE_TEI = "huggingface_tei"
-    BGE_M3 = "bge_m3"
+    # todo: fill in the dimension and model_path for each embedding model as needed
+    HUGGINGFACE_ALL_MPNET_BASE_V2 = {"dimension":768, "model_path":"sentence-transformers/all-mpnet-base-v2"}
+    HUGGINGFACE_ALL_MINILM_L6_V2 = {"dimension":384, "model_path":"sentence-transformers/all-MiniLM-L6-v2"}
+    HUGGINGFACE_ALL_MINILM_L12_V2 = {"dimension":384, "model_path":"sentence-transformers/all-MiniLM-L12-v2"}
+    DATA2VEC_AUDIO = {"dimension":None, "model_path":"model/text2vec-base-chinese/"}
+    LLM_EMB2VEC_AUDIO = {"dimension":None, "model_path":None}
+    FASTTEXT = {"dimension":None, "model_path":None}
+    PADDLE_NLP = {"dimension":None, "model_path":None}
+    TIMM = {"dimension":None, "model_path":None}
+    HUGGINGFACE_TEI = {"dimension":None, "model_path":None}
+    BGE_M3 = {"dimension":None, "model_path":None}
 
 
 class MetricType(Enum):
@@ -61,7 +64,7 @@ class BaseEmbedding(metaclass=ABCMeta):
         :rtype: BaseEmbedding
         :raises ValueError: If the specified model type is not supported.
         """
-        if model == EmbeddingModel.HUGGINGFACE:
+        if model == EmbeddingModel.HUGGINGFACE_ALL_MPNET_BASE_V2:
             model_path = kwargs.pop("model_path","sentence-transformers/all-mpnet-base-v2")
             return huggingface.Huggingface(model_path)
 

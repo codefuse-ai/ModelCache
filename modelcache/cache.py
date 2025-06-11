@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import atexit
 import json
 import logging
 import time
-from typing import Callable, Optional, List
+from asyncio import AbstractEventLoop
+from typing import Callable, Optional, List, Any, Coroutine
 from modelcache.adapter import adapter
+from modelcache.embedding.embedding_dispatcher import EmbeddingDispatcher
 from modelcache.utils.model_filter import model_blacklist_filter
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, Future
 import configparser
 from modelcache.embedding.base import BaseEmbedding, EmbeddingModel, MetricType
 from modelcache.manager.scalar_data.sql_storage import SQLStorage
@@ -41,10 +44,11 @@ class Cache:
         data_manager: DataManager,
         query_pre_embedding_func: Callable,
         insert_pre_embedding_func: Callable,
-        embedding_func: Callable,
+        embedding_func: Callable[[str], Future],
         report: Report, # TODO: figure out why this is needed
         similarity_evaluation: Optional[SimilarityEvaluation],
         post_process_messages_func: Callable,
+
         similarity_threshold: float = 0.95,
         similarity_threshold_long: float = 0.95,
         prompts: Optional[List[str]] = None,
@@ -82,7 +86,7 @@ class Cache:
         self.data_manager.save_query_resp(result, model=model, query=json.dumps(query, ensure_ascii=False),
                                           delta_time=delta_time_log)
 
-    def handle_request(self, param_dict: dict):
+    async def handle_request(self, param_dict: dict):
         # param parsing
         try:
             request_type = param_dict.get("type")
@@ -112,9 +116,9 @@ class Cache:
 
         # handle request
         if request_type == 'query':
-            return self.handle_query(model, query)
+            return await self.handle_query(model, query)
         elif request_type == 'insert':
-            return self.handle_insert(chat_info, model)
+            return await self.handle_insert(chat_info, model)
         elif request_type == 'remove':
             return self.handle_remove(model, param_dict)
         elif request_type == 'register':
@@ -151,10 +155,10 @@ class Cache:
             result = {"errorCode": 402, "errorDesc": "", "response": response, "writeStatus": "exception"}
         return result
 
-    def handle_insert(self, chat_info, model):
+    async def handle_insert(self, chat_info, model):
         try:
             try:
-                response = adapter.ChatCompletion.create_insert(
+                response = await adapter.ChatCompletion.create_insert(
                     model=model,
                     chat_info=chat_info,
                     cache_obj=self
@@ -170,10 +174,10 @@ class Cache:
         except Exception as e:
             return {"errorCode": 303, "errorDesc": str(e), "writeStatus": "exception"}
 
-    def handle_query(self, model, query):
+    async def handle_query(self, model, query):
         try:
             start_time = time.time()
-            response = adapter.ChatCompletion.create_query(
+            response = await adapter.ChatCompletion.create_query(
                 scope={"model": model},
                 query=query,
                 cache_obj=self
@@ -203,7 +207,12 @@ class Cache:
         self.data_manager.flush()
 
     @staticmethod
-    def init(sql_storage: str, vector_storage: str) -> 'Cache':
+    async def init(
+            sql_storage: str,
+            vector_storage: str,
+            embedding_model: EmbeddingModel,
+            embedding_workers_num: int
+    ) -> tuple['Cache' , AbstractEventLoop]:
         #================= configurations for databases ===================#
 
         sql_config = configparser.ConfigParser()
@@ -234,9 +243,15 @@ class Cache:
 
         #=============== model-specific configuration =====================#
 
-        embedding_model = EmbeddingModel.HUGGINGFACE
-        model_path = "sentence-transformers/all-mpnet-base-v2"
-        base_embedding = BaseEmbedding.get(embedding_model, model_path=model_path)
+        event_loop = asyncio.get_running_loop()
+        model_path = embedding_model.value['model_path']
+        dimension = embedding_model.value['dimension']
+
+        if model_path is None or dimension is None:
+            modelcache_log.error(f"Please set the model_path and dimension for {embedding_model} in modelcache/embedding/base.py.")
+            raise CacheError(f"Please set the model_path and dimension for {embedding_model} in modelcache/embedding/base.py.")
+
+        embedding_dispatcher = EmbeddingDispatcher(embedding_model, model_path, event_loop, embedding_workers_num)
 
         #=== These will be used to initialize the cache ===#
         query_pre_embedding_func: Callable = None
@@ -250,7 +265,7 @@ class Cache:
         #==================================================#
 
         # switching based on embedding_model
-        if embedding_model == EmbeddingModel.HUGGINGFACE:
+        if embedding_model == EmbeddingModel.HUGGINGFACE_ALL_MPNET_BASE_V2:
             query_pre_embedding_func = query_with_role
             insert_pre_embedding_func = query_with_role
             post_process_messages_func = first
@@ -281,7 +296,7 @@ class Cache:
             SQLStorage.get(sql_storage, config=sql_config),
             VectorStorage.get(
                 name=vector_storage,
-                dimension=base_embedding.dimension,
+                dimension=dimension,
                 config=vector_config,
                 metric_type=similarity_metric_type,
             ),
@@ -290,7 +305,6 @@ class Cache:
             normalize=normalize,
         )
 
-
         #================== Cache Initialization ====================#
 
         cache = Cache(
@@ -298,7 +312,7 @@ class Cache:
             similarity_metric_type = similarity_metric_type,
             data_manager = data_manager,
             report = Report(),
-            embedding_func = base_embedding.to_embeddings,
+            embedding_func = embedding_dispatcher.embed,
             query_pre_embedding_func = query_pre_embedding_func,
             insert_pre_embedding_func = insert_pre_embedding_func,
             similarity_evaluation = similarity_evaluation,
@@ -308,4 +322,4 @@ class Cache:
             prompts = None,
             log_time_func = None,
         )
-        return cache
+        return cache, event_loop

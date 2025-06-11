@@ -10,11 +10,11 @@ class ChatCompletion(object):
     """Openai ChatCompletion Wrapper"""
 
     @classmethod
-    def create_query(cls, *args, **kwargs):
+    async def create_query(cls, *args, **kwargs):
         def cache_data_convert(cache_data, cache_query):
             return construct_resp_from_cache(cache_data, cache_query)
         try:
-            return adapt_query(
+            return await adapt_query(
                 cache_data_convert,
                 *args,
                 **kwargs
@@ -24,9 +24,9 @@ class ChatCompletion(object):
             return str(e)
 
     @classmethod
-    def create_insert(cls, *args, **kwargs):
+    async def create_insert(cls, *args, **kwargs):
         try:
-            return adapt_insert(
+            return await adapt_insert(
                 *args,
                 **kwargs
             )

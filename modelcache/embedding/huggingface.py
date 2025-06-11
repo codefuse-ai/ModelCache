@@ -4,7 +4,9 @@ from sentence_transformers import SentenceTransformer
 
 class Huggingface(BaseEmbedding):
     def __init__(self, model: str):
-        self.model = SentenceTransformer(model)
+        self.model = SentenceTransformer(model,tokenizer_kwargs={
+            "clean_up_tokenization_spaces":False
+        })
         try:
             self.__dimension = self.model.config.hidden_size
         except Exception:

@@ -6,7 +6,7 @@ from FlagEmbedding import FlagReranker
 
 USE_RERANKER = False  # 如果为 True 则启用 reranker，否则使用原有逻辑
 
-def adapt_query(cache_data_convert, *args, **kwargs):
+async def adapt_query(cache_data_convert, *args, **kwargs):
     chat_cache = kwargs.pop("cache_obj")
     scope = kwargs.pop("scope")
     model = scope['model']
@@ -17,7 +17,7 @@ def adapt_query(cache_data_convert, *args, **kwargs):
         extra_param=context.get("pre_embedding_func", None),
         prompts=chat_cache.prompts,
     )
-    embedding_data = time_cal(
+    embedding_data = await time_cal(
         chat_cache.embedding_func,
         func_name="embedding",
         report_func=chat_cache.report.embedding,
