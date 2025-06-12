@@ -20,3 +20,5 @@ snowflake-id==1.0.2
 flagembedding==1.3.4
 cryptography==45.0.2
 sentence-transformers==4.1.0
+pytest>=8.0
+

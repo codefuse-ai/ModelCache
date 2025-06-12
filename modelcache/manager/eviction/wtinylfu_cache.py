@@ -117,13 +117,21 @@ class W2TinyLFU(Cache):
     def _admit_to_main(self, key):
         if key in self.protected or key in self.probation:
             return
+        if self.probation_size == 0:
+            if self.on_evict:
+                self.on_evict(key)
+            self.data.pop(key, None)
+            return
         if len(self.probation) < self.probation_size:
             self.probation[key] = True
-        else:
+        elif self.probation:
             evicted = next(iter(self.probation))
             self.probation.pop(evicted)
             self.probation[key] = True
-            # this eviction removes it entirely
             if self.on_evict:
                 self.on_evict(evicted)
             self.data.pop(evicted, None)
+        else:
+            if self.on_evict:
+                self.on_evict(key)
+            self.data.pop(key, None)
