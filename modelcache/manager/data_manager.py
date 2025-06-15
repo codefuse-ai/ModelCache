@@ -182,8 +182,7 @@ class SSDataManager(DataManager):
         self.eviction_base = MemoryCacheEviction(
             policy=policy,
             maxsize=max_size,
-            clean_size=clean_size,
-            on_evict=self._evict_ids)
+            clean_size=clean_size)
 
     def save(self, questions: List[any], answers: List[any], embedding_datas: List[any], **kwargs):
         model = kwargs.pop("model", None)
@@ -313,31 +312,6 @@ class SSDataManager(DataManager):
             return {'status': 'failed', 'VectorDB': 'rebuild',
                     'ScalarDB': 'truncate scalar data failed, please check! e: {}'.format(e)}
         return {'status': 'success', 'VectorDB': 'rebuild', 'ScalarDB': 'delete_count: ' + str(delete_count)}
-
-    # added
-    def _evict_ids(self, ids, **kwargs):
-        model = kwargs.get("model")
-        if not ids or any(i is None for i in ids):
-            modelcache_log.warning("Skipping eviction for invalid IDs: %s", ids)
-            return
-
-        if isinstance(ids,str):
-            ids = [ids]
-
-        for _id in ids:
-            self.eviction_base.get_cache(model).pop(_id, None)
-
-        try:
-            self.s.mark_deleted(ids)
-            modelcache_log.info("Evicted from scalar storage: %s", ids)
-        except Exception as e:
-            modelcache_log.error("Failed to delete from scalar storage: %s", str(e))
-
-        try:
-            self.v.delete(ids, model=model)
-            modelcache_log.info("Evicted from vector storage (model=%s): %s", model, ids)
-        except Exception as e:
-            modelcache_log.error("Failed to delete from vector storage (model=%s): %s", model, str(e))
 
     def flush(self):
         self.s.flush()

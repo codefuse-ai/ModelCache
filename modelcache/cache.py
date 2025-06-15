@@ -27,7 +27,7 @@ from modelcache.manager.data_manager import DataManager
             #==================== Cache class definition =========================#
             #=====================================================================#
 
-executor = ThreadPoolExecutor(max_workers=6)
+executor = ThreadPoolExecutor(max_workers=2)
 
 def response_text(cache_resp):
     return cache_resp['data']
@@ -300,8 +300,8 @@ class Cache:
                 config=vector_config,
                 metric_type=similarity_metric_type,
             ),
-            eviction='WTINYLFU',
-            max_size=100000,
+            eviction='ARC',
+            max_size=10000,
             normalize=normalize,
         )
 

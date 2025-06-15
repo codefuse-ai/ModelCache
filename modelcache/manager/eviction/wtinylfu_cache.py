@@ -1,6 +1,6 @@
 from cachetools import LRUCache, Cache
+from readerwriterlock import rwlock
 import random
-from typing import Any, Callable
 
 class CountMinSketch:
     def __init__(self, width=1024, depth=4, decay_interval=10000):
@@ -16,7 +16,6 @@ class CountMinSketch:
 
     def add(self, x):
         self.ops += 1
-        # minimal increment
         est = self.estimate(x)
         for i, seed in enumerate(self.seeds):
             idx = self._hash(x, seed)
@@ -35,9 +34,8 @@ class CountMinSketch:
             for i in range(len(table)):
                 table[i] >>= 1
 
-
 class W2TinyLFU(Cache):
-    def __init__(self, maxsize, window_pct=1, on_evict: Callable[[Any], None]=None):
+    def __init__(self, maxsize, window_pct=1):
         super().__init__(maxsize)
         self.window_size = max(1, int(maxsize * window_pct / 100))
         rest = maxsize - self.window_size
@@ -49,12 +47,13 @@ class W2TinyLFU(Cache):
         self.protected = LRUCache(maxsize=self.protected_size)
 
         self.cms = CountMinSketch()
-        self.on_evict = on_evict
         self.data = {}
+        self._rw_lock = rwlock.RWLockWrite()
 
     def __setitem__(self, key, value):
-        self.data[key] = value
-        self._put(key)
+        with self._rw_lock.gen_wlock():
+            self.data[key] = value
+            self._put(key)
 
     def __getitem__(self, key):
         val = self.get(key, default=None)
@@ -66,10 +65,11 @@ class W2TinyLFU(Cache):
         return key in self.window or key in self.probation or key in self.protected
 
     def __delitem__(self, key):
-        self.data.pop(key, None)
-        self.window.pop(key, None)
-        self.probation.pop(key, None)
-        self.protected.pop(key, None)
+        with self._rw_lock.gen_wlock():
+            self.data.pop(key, None)
+            self.window.pop(key, None)
+            self.probation.pop(key, None)
+            self.protected.pop(key, None)
 
     def get(self, key, default=None):
         if key in self.window:
@@ -80,7 +80,6 @@ class W2TinyLFU(Cache):
             return self.data.get(key, default)
         if key in self.probation:
             self.probation.pop(key)
-            # demote LRU from protected if full
             if len(self.protected) >= self.protected_size:
                 demoted = next(iter(self.protected))
                 self.protected.pop(demoted)
@@ -94,12 +93,10 @@ class W2TinyLFU(Cache):
         if key in self:
             return
 
-        # admission to window
         if len(self.window) < self.window_size:
             self.window[key] = True
             return
 
-        # window full: victim is LRU
         victim = next(iter(self.window))
         self.window.pop(victim)
 
@@ -107,19 +104,13 @@ class W2TinyLFU(Cache):
             self._admit_to_main(victim)
             self._admit_to_main(key)
         else:
-            # victim stronger or equal: victim enters main, key is dropped
             self._admit_to_main(victim)
-            # actually evicts key entirely
-            if self.on_evict:
-                self.on_evict(key)
             self.data.pop(key, None)
 
     def _admit_to_main(self, key):
         if key in self.protected or key in self.probation:
             return
         if self.probation_size == 0:
-            if self.on_evict:
-                self.on_evict(key)
             self.data.pop(key, None)
             return
         if len(self.probation) < self.probation_size:
@@ -128,10 +119,13 @@ class W2TinyLFU(Cache):
             evicted = next(iter(self.probation))
             self.probation.pop(evicted)
             self.probation[key] = True
-            if self.on_evict:
-                self.on_evict(evicted)
             self.data.pop(evicted, None)
         else:
-            if self.on_evict:
-                self.on_evict(key)
             self.data.pop(key, None)
+
+    def clear(self):
+        with self._rw_lock.gen_wlock():
+            self.window.clear()
+            self.probation.clear()
+            self.protected.clear()
+            self.data.clear()
