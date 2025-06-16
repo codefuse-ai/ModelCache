@@ -35,9 +35,9 @@ class ChatCompletion(object):
             return str(e)
 
     @classmethod
-    def create_remove(cls, *args, **kwargs):
+    async def create_remove(cls, *args, **kwargs):
         try:
-            return adapt_remove(
+            return await adapt_remove(
                 *args,
                 **kwargs
             )
@@ -46,9 +46,9 @@ class ChatCompletion(object):
             return str(e)
 
     @classmethod
-    def create_register(cls, *args, **kwargs):
+    async def create_register(cls, *args, **kwargs):
         try:
-            return adapt_register(
+            return await adapt_register(
                 *args,
                 **kwargs
             )

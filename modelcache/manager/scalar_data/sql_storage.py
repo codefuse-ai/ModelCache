@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-import os
-import time
 import uuid
 
 import pymysql
 import json
-import base64
+import numpy as np
 from typing import List
 from modelcache.manager.scalar_data.base import CacheStorage, CacheData
 from DBUtils.PooledDB import PooledDB
@@ -147,7 +145,7 @@ class SQLStorage(CacheStorage):
             conn.close()
 
         if resp is not None and len(resp) == 4:
-            return resp
+            return resp[0], resp[1], np.frombuffer(resp[2], dtype=np.float32), resp[3]
         else:
             return None
 

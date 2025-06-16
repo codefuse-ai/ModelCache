@@ -69,7 +69,7 @@ class DataManager(metaclass=ABCMeta):
             object_base: Union[ObjectBase, str] = None,
             max_size: int = 3,
             clean_size: int = 1,
-            eviction: str = "ARC",
+            memory_cache_policy: str = "ARC",
             data_path: str = "data_map.txt",
             get_data_container: Callable = None,
             normalize: bool = True
@@ -84,7 +84,7 @@ class DataManager(metaclass=ABCMeta):
         if isinstance(object_base, str):
             object_base = ObjectBase.get(name=object_base)
         assert cache_base and vector_base
-        return SSDataManager(cache_base, vector_base, object_base, max_size, clean_size,normalize, eviction)
+        return SSDataManager(cache_base, vector_base, object_base, max_size, clean_size,normalize, memory_cache_policy)
 
 
 class MapDataManager(DataManager):
@@ -229,22 +229,18 @@ class SSDataManager(DataManager):
                 normalize(embedding_data) for embedding_data in embedding_datas
             ]
 
-        for i, embedding_data in enumerate(embedding_datas):
+        for embedding_data, answer, question in zip(embedding_datas,answers,questions):
             if self.o is not None:
-                ans = self._process_answer_data(answers[i])
-            else:
-                ans = answers[i]
+                answer = self._process_answer_data(answer)
 
-            question = questions[i]
             embedding_data = embedding_data.astype("float32")
-            cache_datas.append([ans, question, embedding_data, model])
+            cache_datas.append([answer, question, embedding_data, model])
 
         ids = self.s.batch_insert(cache_datas)
         datas = []
-        for i, embedding_data in enumerate(embedding_datas):
-            _id = ids[i]
+        for _id,embedding_data,cache_data in zip(ids,embedding_datas,cache_datas):
             datas.append(VectorData(id=_id, data=embedding_data.astype("float32")))
-            self.eviction_base.put([(_id, cache_datas[i])],model=model)
+            self.eviction_base.put([(_id, cache_data)],model=model)
         self.v.mul_add(datas,model)
 
     def get_scalar_data(self, res_data, **kwargs) -> Optional[CacheData]:
@@ -254,9 +250,10 @@ class SSDataManager(DataManager):
         cache_hit = self.eviction_base.get(_id, model=model)
         if cache_hit is not None:
             return cache_hit
-        cache_data = self.s.get_data_by_id(res_data[1])
+        cache_data = self.s.get_data_by_id(_id)
         if cache_data is None:
             return None
+        self.eviction_base.put([(_id, cache_data)], model=model)
         return cache_data
 
     def update_hit_count(self, primary_id, **kwargs):

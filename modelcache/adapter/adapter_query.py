@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import logging
 from modelcache.embedding import MetricType
 from modelcache.utils.time import time_cal
@@ -24,17 +25,20 @@ async def adapt_query(cache_data_convert, *args, **kwargs):
         cache_obj=chat_cache
     )(pre_embedding_data)
 
-    cache_data_list = time_cal(
+    search_time_cal = time_cal(
         chat_cache.data_manager.search,
         func_name="vector_search",
         report_func=chat_cache.report.search,
         cache_obj=chat_cache
-    )(
+    )
+    cache_data_list = await asyncio.to_thread(
+        search_time_cal,
         embedding_data,
         extra_param=context.get("search_func", None),
         top_k=kwargs.pop("top_k", -1),
         model=model
     )
+
     cache_answers = []
     cache_questions = []
     cache_ids = []
@@ -43,7 +47,7 @@ async def adapt_query(cache_data_convert, *args, **kwargs):
     if chat_cache.similarity_metric_type == MetricType.COSINE:
         cosine_similarity = cache_data_list[0][0]
         # This code uses the built-in cosine similarity evaluation in milvus
-        if cosine_similarity < 0.9:
+        if cosine_similarity < chat_cache.similarity_threshold:
             return None
     elif chat_cache.similarity_metric_type == MetricType.L2:
         ## this is the code that uses L2 for similarity evaluation
@@ -87,8 +91,9 @@ async def adapt_query(cache_data_convert, *args, **kwargs):
         reranker = FlagReranker('BAAI/bge-reranker-v2-m3', use_fp16=False)
         for cache_data in cache_data_list:
             primary_id = cache_data[1]
-            ret = chat_cache.data_manager.get_scalar_data(
-                cache_data, extra_param=context.get("get_scalar_data", None),model=model
+            ret = await asyncio.to_thread(
+                chat_cache.data_manager.get_scalar_data,
+                cache_data, extra_param=context.get("get_scalar_data", None), model=model
             )
             if ret is None:
                 continue
@@ -133,8 +138,9 @@ async def adapt_query(cache_data_convert, *args, **kwargs):
         # 不使用 reranker 时，走原来的逻辑
         for cache_data in cache_data_list:
             primary_id = cache_data[1]
-            ret = chat_cache.data_manager.get_scalar_data(
-                cache_data, extra_param=context.get("get_scalar_data", None),model=model
+            ret = await asyncio.to_thread(
+                chat_cache.data_manager.get_scalar_data,
+                cache_data, extra_param=context.get("get_scalar_data", None), model=model
             )
             if ret is None:
                 continue
@@ -204,7 +210,7 @@ async def adapt_query(cache_data_convert, *args, **kwargs):
         )
         # 更新命中次数
         try:
-            chat_cache.data_manager.update_hit_count(return_id)
+            asyncio.create_task(asyncio.to_thread(chat_cache.data_manager.update_hit_count,return_id))
         except Exception:
             logging.info('update_hit_count except, please check!')
 

@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
         sql_storage="mysql",
         vector_storage="milvus",
         embedding_model=EmbeddingModel.HUGGINGFACE_ALL_MPNET_BASE_V2,
-        embedding_workers_num=6
+        embedding_workers_num=8
     )
     yield
 

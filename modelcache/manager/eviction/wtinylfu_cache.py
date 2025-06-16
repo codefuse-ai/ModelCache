@@ -1,4 +1,4 @@
-from cachetools import LRUCache, Cache
+from cachetools import LRUCache, Cache, LFUCache
 from readerwriterlock import rwlock
 import random
 
@@ -35,16 +35,21 @@ class CountMinSketch:
                 table[i] >>= 1
 
 class W2TinyLFU(Cache):
-    def __init__(self, maxsize, window_pct=1):
+    def __init__(self, maxsize, window_pct=0.01):
+        """
+        param maxsize: Maximum size of the cache.
+
+        param window_pct: Percentage of the cache size to be used for the window.
+        """
         super().__init__(maxsize)
-        self.window_size = max(1, int(maxsize * window_pct / 100))
+        self.window_size = max(1, int(maxsize * window_pct))
         rest = maxsize - self.window_size
         self.probation_size = rest // 2
         self.protected_size = rest - self.probation_size
 
         self.window = LRUCache(maxsize=self.window_size)
-        self.probation = LRUCache(maxsize=self.probation_size)
-        self.protected = LRUCache(maxsize=self.protected_size)
+        self.probation = LFUCache(maxsize=self.probation_size)
+        self.protected = LFUCache(maxsize=self.protected_size)
 
         self.cms = CountMinSketch()
         self.data = {}

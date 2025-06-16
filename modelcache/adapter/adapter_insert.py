@@ -16,7 +16,6 @@ async def adapt_insert(*args, **kwargs):
 
     pre_embedding_data_list = []
     embedding_futures_list = []
-    # embedding_data_list = []
     llm_data_list = []
 
     for row in chat_info:
@@ -37,7 +36,8 @@ async def adapt_insert(*args, **kwargs):
 
     embedding_data_list = await asyncio.gather(*embedding_futures_list)
 
-    chat_cache.data_manager.save(
+    await asyncio.to_thread(
+        chat_cache.data_manager.save,
         pre_embedding_data_list,
         llm_data_list,
         embedding_data_list,

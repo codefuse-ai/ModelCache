@@ -27,13 +27,6 @@ from modelcache.manager.data_manager import DataManager
             #==================== Cache class definition =========================#
             #=====================================================================#
 
-executor = ThreadPoolExecutor(max_workers=2)
-
-def response_text(cache_resp):
-    return cache_resp['data']
-
-def response_hitquery(cache_resp):
-    return cache_resp['hitQuery']
 
 # noinspection PyMethodMayBeStatic
 class Cache:
@@ -80,11 +73,16 @@ class Cache:
                 modelcache_log.error(e)
 
     def save_query_resp(self, query_resp_dict, **kwargs):
-        self.data_manager.save_query_resp(query_resp_dict, **kwargs)
+        asyncio.create_task(asyncio.to_thread(
+            self.data_manager.save_query_resp,
+            query_resp_dict, **kwargs
+        ))
 
     def save_query_info(self,result, model, query, delta_time_log):
-        self.data_manager.save_query_resp(result, model=model, query=json.dumps(query, ensure_ascii=False),
-                                          delta_time=delta_time_log)
+        asyncio.create_task(asyncio.to_thread(
+            self.data_manager.save_query_resp,
+            result, model=model, query=json.dumps(query, ensure_ascii=False), delta_time=delta_time_log
+        ))
 
     async def handle_request(self, param_dict: dict):
         # param parsing
@@ -103,7 +101,7 @@ class Cache:
                 result = {"errorCode": 102,
                           "errorDesc": "type exception, should one of ['query', 'insert', 'remove', 'register']",
                           "cacheHit": False, "delta_time": 0, "hit_query": '', "answer": ''}
-                self.data_manager.save_query_resp(result, model=model, query='', delta_time=0)
+                self.save_query_resp(result, model=model, query='', delta_time=0)
                 return result
         except Exception as e:
             return {"errorCode": 103, "errorDesc": str(e), "cacheHit": False, "delta_time": 0, "hit_query": '',
@@ -120,14 +118,14 @@ class Cache:
         elif request_type == 'insert':
             return await self.handle_insert(chat_info, model)
         elif request_type == 'remove':
-            return self.handle_remove(model, param_dict)
+            return await self.handle_remove(model, param_dict)
         elif request_type == 'register':
-            return self.handle_register(model)
+            return await self.handle_register(model)
         else:
             return {"errorCode": 400, "errorDesc": "bad request"}
 
-    def handle_register(self, model):
-        response = adapter.ChatCompletion.create_register(
+    async def handle_register(self, model):
+        response = await adapter.ChatCompletion.create_register(
             model=model,
             cache_obj=self
         )
@@ -137,10 +135,10 @@ class Cache:
             result = {"errorCode": 502, "errorDesc": "", "response": response, "writeStatus": "exception"}
         return result
 
-    def handle_remove(self, model, param_dict):
+    async def handle_remove(self, model, param_dict):
         remove_type = param_dict.get("remove_type")
         id_list = param_dict.get("id_list", [])
-        response = adapter.ChatCompletion.create_remove(
+        response = await adapter.ChatCompletion.create_remove(
             model=model,
             remove_type=remove_type,
             id_list=id_list,
@@ -191,12 +189,12 @@ class Cache:
                 result = {"errorCode": 201, "errorDesc": response, "cacheHit": False, "delta_time": delta_time,
                           "hit_query": '', "answer": ''}
             else:
-                answer = response_text(response)
-                hit_query = response_hitquery(response)
+                answer = response['data']
+                hit_query = response['hitQuery']
                 result = {"errorCode": 0, "errorDesc": '', "cacheHit": True, "delta_time": delta_time,
                           "hit_query": hit_query, "answer": answer}
             delta_time_log = round(time.time() - start_time, 2)
-            executor.submit(self.save_query_info, result, model, query, delta_time_log)
+            self.save_query_info(result, model, query, delta_time_log)
         except Exception as e:
             result = {"errorCode": 202, "errorDesc": str(e), "cacheHit": False, "delta_time": 0,
                       "hit_query": '', "answer": ''}
@@ -265,7 +263,9 @@ class Cache:
         #==================================================#
 
         # switching based on embedding_model
-        if embedding_model == EmbeddingModel.HUGGINGFACE_ALL_MPNET_BASE_V2:
+        if (embedding_model == EmbeddingModel.HUGGINGFACE_ALL_MPNET_BASE_V2
+        or  embedding_model == EmbeddingModel.HUGGINGFACE_ALL_MINILM_L6_V2
+        or  embedding_model == EmbeddingModel.HUGGINGFACE_ALL_MINILM_L12_V2):
             query_pre_embedding_func = query_with_role
             insert_pre_embedding_func = query_with_role
             post_process_messages_func = first
@@ -287,8 +287,8 @@ class Cache:
 
         # add more configurations for other embedding models as needed
         else:
-            modelcache_log.error(f"Please add configuration for {embedding_model} in modelcache/__init__.py.")
-            raise CacheError(f"Please add configuration for {embedding_model} in modelcache/__init__.py.")
+            modelcache_log.error(f"Please add configuration for {embedding_model} in modelcache/cache.py.")
+            raise CacheError(f"Please add configuration for {embedding_model} in modelcache/cache.py.")
 
         # ====================== Data manager ==============================#
 
@@ -300,7 +300,7 @@ class Cache:
                 config=vector_config,
                 metric_type=similarity_metric_type,
             ),
-            eviction='ARC',
+            memory_cache_policy='ARC',
             max_size=10000,
             normalize=normalize,
         )

@@ -2,6 +2,7 @@ import multiprocessing
 import threading
 import uuid
 import asyncio
+import psutil
 from asyncio import Future, AbstractEventLoop
 
 from modelcache.embedding import EmbeddingModel
@@ -11,13 +12,18 @@ from modelcache.embedding.base import BaseEmbedding
 def worker_func(embedding_model: EmbeddingModel, model_path, task_queue, result_queue, worker_id):
     base_embedding = BaseEmbedding.get(embedding_model, model_path=model_path)
     print(f"Embedding worker {worker_id} started.")
-    while True:
-        job_id, data = task_queue.get()
-        try:
-            result = base_embedding.to_embeddings(data)
-        except Exception as e:
-            result = e
-        result_queue.put((job_id, result))
+    try:
+        while True:
+            job_id, data = task_queue.get()
+            try:
+                result = base_embedding.to_embeddings(data)
+            except Exception as e:
+                result = e
+            result_queue.put((job_id, result))
+    except KeyboardInterrupt:
+        print(f"Embedding worker {worker_id} stopped.")
+    except Exception as e:
+        print(f"Embedding worker {worker_id} encountered an error: {e}")
 
 
 class EmbeddingDispatcher:
@@ -46,6 +52,7 @@ class EmbeddingDispatcher:
             )
             p.daemon = True
             p.start()
+            psutil.Process(p.pid).nice(psutil.HIGH_PRIORITY_CLASS)
             self.workers.append(p)
 
     def _start_result_collector_thread(self):

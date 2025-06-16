@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 from abc import abstractmethod, ABCMeta
 
+from modelcache.utils.error import CacheError
 from modelcache.utils.lazy_import import LazyImport
 from enum import Enum
+
+from modelcache.utils.log import modelcache_log
+
 huggingface = LazyImport("huggingface", globals(), "modelcache.embedding.huggingface")
 data2vec = LazyImport("data2vec", globals(), "modelcache.embedding.data2vec")
 llmEmb = LazyImport("llmEmb", globals(), "modelcache.embedding.llmEmb")
@@ -21,7 +25,7 @@ class EmbeddingModel(Enum):
     HUGGINGFACE_ALL_MPNET_BASE_V2 = {"dimension":768, "model_path":"sentence-transformers/all-mpnet-base-v2"}
     HUGGINGFACE_ALL_MINILM_L6_V2 = {"dimension":384, "model_path":"sentence-transformers/all-MiniLM-L6-v2"}
     HUGGINGFACE_ALL_MINILM_L12_V2 = {"dimension":384, "model_path":"sentence-transformers/all-MiniLM-L12-v2"}
-    DATA2VEC_AUDIO = {"dimension":None, "model_path":"model/text2vec-base-chinese/"}
+    DATA2VEC_AUDIO = {"dimension":768, "model_path":"model/text2vec-base-chinese/"}
     LLM_EMB2VEC_AUDIO = {"dimension":None, "model_path":None}
     FASTTEXT = {"dimension":None, "model_path":None}
     PADDLE_NLP = {"dimension":None, "model_path":None}
@@ -68,6 +72,14 @@ class BaseEmbedding(metaclass=ABCMeta):
             model_path = kwargs.pop("model_path","sentence-transformers/all-mpnet-base-v2")
             return huggingface.Huggingface(model_path)
 
+        elif model == EmbeddingModel.HUGGINGFACE_ALL_MINILM_L6_V2:
+            model_path = kwargs.pop("model_path","sentence-transformers/all-MiniLM-L6-v2")
+            return huggingface.Huggingface(model_path)
+
+        elif model == EmbeddingModel.HUGGINGFACE_ALL_MINILM_L12_V2:
+            model_path = kwargs.pop("model_path","sentence-transformers/all-MiniLM-L12-v2")
+            return huggingface.Huggingface(model_path)
+
         elif model == EmbeddingModel.DATA2VEC_AUDIO:
             model_path = kwargs.pop("model_path","model/text2vec-base-chinese/")
             return data2vec.Data2VecAudio(model_path)
@@ -99,5 +111,7 @@ class BaseEmbedding(metaclass=ABCMeta):
             return bge_m3.BgeM3Embedding(model_path)
 
         else:
-            raise ValueError(f"Unsupported embedding model: {model}")
+            modelcache_log.error(f"Please add configuration for {model} in modelcache/embedding/base.py.")
+            raise CacheError(f"Please add configuration for {model} in modelcache/embedding/base.py.")
+
 

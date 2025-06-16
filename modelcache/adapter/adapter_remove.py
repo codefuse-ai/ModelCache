@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-from modelcache.utils.error import NotInitError, RemoveError
+import asyncio
+
+from modelcache.utils.error import RemoveError
 
 
-def adapt_remove(*args, **kwargs):
+async def adapt_remove(*args, **kwargs):
     chat_cache = kwargs.pop("cache_obj")
     model = kwargs.pop("model", None)
     remove_type = kwargs.pop("remove_type", None)
@@ -13,9 +15,15 @@ def adapt_remove(*args, **kwargs):
     # delete data
     if remove_type == 'delete_by_id':
         id_list = kwargs.pop("id_list", [])
-        resp = chat_cache.data_manager.delete(id_list, model=model)
+        resp = await asyncio.to_thread(
+            chat_cache.data_manager.delete,
+            id_list, model=model
+        )
     elif remove_type == 'truncate_by_model':
-        resp = chat_cache.data_manager.truncate(model)
+        resp = await asyncio.to_thread(
+            chat_cache.data_manager.truncate,
+            model
+        )
     else:
         # resp = "remove_type_error"
         raise RemoveError()
