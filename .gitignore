@@ -146,3 +146,47 @@ dmypy.json
 
 /data/milvus/db
 /data/mysql/db
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.py,cover
+.hypothesis/
+pytest_cache/
+test-results/
+.tox/
+.nox/
+
+# Claude
+.claude/*
+
+# Poetry
+dist/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.orig
+tmp/
+temp/
