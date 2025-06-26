@@ -73,30 +73,56 @@ class Cache:
                 modelcache_log.error(e)
 
     def save_query_resp(self, query_resp_dict, **kwargs):
+        """
+        Save query response asynchronously to avoid blocking main thread.
+        Used for logging and analytics purposes.
+        """
+        # Execute save operation in a separate thread to maintain async performance
         asyncio.create_task(asyncio.to_thread(
             self.data_manager.save_query_resp,
             query_resp_dict, **kwargs
         ))
 
-    def save_query_info(self,result, model, query, delta_time_log):
+    def save_query_info(self, result, model, query, delta_time_log):
+        """
+        Save query information with execution timing for performance analysis.
+        Serializes query data to JSON for storage.
+        """
+        # Convert query to JSON and save asynchronously
         asyncio.create_task(asyncio.to_thread(
             self.data_manager.save_query_resp,
             result, model=model, query=json.dumps(query, ensure_ascii=False), delta_time=delta_time_log
         ))
 
     async def handle_request(self, param_dict: dict):
-        # param parsing
+        """
+        Main entry point for processing cache requests.
+
+        Routes requests to appropriate handlers based on request type.
+        Supports: query, insert, remove, register operations.
+
+        Args:
+            param_dict: Request parameters containing type, scope, query, etc.
+
+        Returns:
+            dict: Response dictionary with errorCode, result data, and metadata
+        """
+        # Parse and validate request parameters
         try:
             request_type = param_dict.get("type")
 
+            # Extract model information from scope
             scope = param_dict.get("scope")
             model = None
             if scope is not None:
                 model = scope.get('model')
+                # Normalize model name for consistent storage (replace special chars)
                 model = model.replace('-', '_')
                 model = model.replace('.', '_')
             query = param_dict.get("query")
             chat_info = param_dict.get("chat_info")
+
+            # Validate request type against supported operations
             if request_type is None or request_type not in ['query', 'insert', 'remove', 'register']:
                 result = {"errorCode": 102,
                           "errorDesc": "type exception, should one of ['query', 'insert', 'remove', 'register']",
@@ -104,15 +130,16 @@ class Cache:
                 self.save_query_resp(result, model=model, query='', delta_time=0)
                 return result
         except Exception as e:
+            # Return error response for parameter parsing failures
             return {"errorCode": 103, "errorDesc": str(e), "cacheHit": False, "delta_time": 0, "hit_query": '',
                       "answer": ''}
 
-        # model filter
+        # Apply model-based filtering (blacklist check)
         filter_resp = model_blacklist_filter(model, request_type)
         if isinstance(filter_resp, dict):
             return filter_resp
 
-        # handle request
+        # Route to appropriate handler based on request type
         if request_type == 'query':
             return await self.handle_query(model, query)
         elif request_type == 'insert':
@@ -129,6 +156,7 @@ class Cache:
             model=model,
             cache_obj=self
         )
+        # Process registration response and return standardized result
         if response in ['create_success', 'already_exists']:
             result = {"errorCode": 0, "errorDesc": "", "response": response, "writeStatus": "success"}
         else:
@@ -138,12 +166,16 @@ class Cache:
     async def handle_remove(self, model, param_dict):
         remove_type = param_dict.get("remove_type")
         id_list = param_dict.get("id_list", [])
+
+        # Execute removal operation through adapter
         response = await adapter.ChatCompletion.create_remove(
             model=model,
             remove_type=remove_type,
             id_list=id_list,
             cache_obj=self
         )
+
+        # Process removal response and standardize result format
         if not isinstance(response, dict):
             return {"errorCode": 401, "errorDesc": "", "response": response, "removeStatus": "exception"}
         state = response.get('status')
@@ -156,6 +188,7 @@ class Cache:
     async def handle_insert(self, chat_info, model):
         try:
             try:
+                # Execute insertion through adapter with error handling
                 response = await adapter.ChatCompletion.create_insert(
                     model=model,
                     chat_info=chat_info,
@@ -164,6 +197,7 @@ class Cache:
             except Exception as e:
                 return {"errorCode": 302, "errorDesc": str(e), "writeStatus": "exception"}
 
+            # Process insertion response
             if response == 'success':
                 result = {"errorCode": 0, "errorDesc": "", "writeStatus": "success"}
             else:
@@ -174,25 +208,35 @@ class Cache:
 
     async def handle_query(self, model, query):
         try:
-            start_time = time.time()
+            start_time = time.time()  # Start performance timer
+
+            # Execute query through adapter system
             response = await adapter.ChatCompletion.create_query(
                 scope={"model": model},
                 query=query,
                 cache_obj=self
             )
+
+            # Calculate query execution time
             delta_time = '{}s'.format(round(time.time() - start_time, 2))
+
+            # Process different response types
             if response is None:
+                # No cache hit found
                 result = {"errorCode": 0, "errorDesc": '', "cacheHit": False, "delta_time": delta_time, "hit_query": '',
                           "answer": ''}
-            # elif response in ['adapt_query_exception']:
             elif isinstance(response, str):
+                # Error occurred during query processing
                 result = {"errorCode": 201, "errorDesc": response, "cacheHit": False, "delta_time": delta_time,
                           "hit_query": '', "answer": ''}
             else:
+                # Cache hit found - extract response data
                 answer = response['data']
                 hit_query = response['hitQuery']
                 result = {"errorCode": 0, "errorDesc": '', "cacheHit": True, "delta_time": delta_time,
                           "hit_query": hit_query, "answer": answer}
+
+            # Log query performance data asynchronously
             delta_time_log = round(time.time() - start_time, 2)
             self.save_query_info(result, model, query, delta_time_log)
         except Exception as e:
@@ -202,6 +246,7 @@ class Cache:
         return result
 
     def flush(self):
+        """Flush all cached data to persistent storage backends."""
         self.data_manager.flush()
 
     @staticmethod
@@ -211,11 +256,35 @@ class Cache:
             embedding_model: EmbeddingModel,
             embedding_workers_num: int
     ) -> tuple['Cache' , AbstractEventLoop]:
-        #================= configurations for databases ===================#
+        """
+        Initialize a complete Cache system with all required components.
+
+        Args:
+            sql_storage: SQL backend type ("mysql", "sqlite", "elasticsearch")
+            vector_storage: Vector backend type ("milvus", "faiss", "chromadb", "redis")
+            embedding_model: Embedding model enum value
+            embedding_workers_num: Number of parallel embedding worker processes
+
+        Returns:
+            tuple: (Cache instance, event loop) ready for async operations
+
+        Raises:
+            CacheError: If unsupported storage backends or model configuration issues
+
+        Example:
+            cache, loop = await Cache.init(
+                sql_storage="mysql",
+                vector_storage="milvus",
+                embedding_model=EmbeddingModel.HUGGINGFACE_ALL_MPNET_BASE_V2,
+                embedding_workers_num=4
+            )
+        """
+        #================= Database configuration loading ===================#
 
         sql_config = configparser.ConfigParser()
         vector_config = configparser.ConfigParser()
 
+        # Load SQL storage configuration from INI files
         if sql_storage == "mysql":
             sql_config.read('modelcache/config/mysql_config.ini')
         elif sql_storage == "elasticsearch":
@@ -226,6 +295,7 @@ class Cache:
             modelcache_log.error(f"Unsupported cache storage: {sql_storage}.")
             raise CacheError(f"Unsupported cache storage: {sql_storage}.")
 
+        # Load vector storage configuration from INI files
         if vector_storage == "milvus" :
             vector_config.read('modelcache/config/milvus_config.ini')
         elif vector_storage == "chromadb" :
@@ -233,22 +303,24 @@ class Cache:
         elif vector_storage == "redis" :
             vector_config.read('modelcache/config/redis_config.ini')
         elif vector_storage == "faiss" :
-            vector_config = None # faiss does not require additional configuration
+            vector_config = None # FAISS does not require external configuration
         else:
             modelcache_log.error(f"Unsupported vector storage: {vector_storage}.")
             raise CacheError(f"Unsupported vector storage: {vector_storage}.")
 
 
-        #=============== model-specific configuration =====================#
+        #=============== embedding-model-specific configuration =====================#
 
-        event_loop = asyncio.get_running_loop()
+        event_loop = asyncio.get_running_loop()  # Get current async event loop
         model_path = embedding_model.value['model_path']
         dimension = embedding_model.value['dimension']
 
+        # Validate that embedding model has required configuration
         if model_path is None or dimension is None:
             modelcache_log.error(f"Please set the model_path and dimension for {embedding_model} in modelcache/embedding/base.py.")
             raise CacheError(f"Please set the model_path and dimension for {embedding_model} in modelcache/embedding/base.py.")
 
+        # Initialize parallel embedding generation system
         embedding_dispatcher = EmbeddingDispatcher(embedding_model, model_path, event_loop, embedding_workers_num)
 
         #=== These will be used to initialize the cache ===#
@@ -262,7 +334,7 @@ class Cache:
         normalize: bool = None
         #==================================================#
 
-        # switching based on embedding_model
+        # Configure cache behavior based on embedding model type
         if (embedding_model == EmbeddingModel.HUGGINGFACE_ALL_MPNET_BASE_V2
         or  embedding_model == EmbeddingModel.HUGGINGFACE_ALL_MINILM_L6_V2
         or  embedding_model == EmbeddingModel.HUGGINGFACE_ALL_MINILM_L12_V2):
@@ -285,13 +357,14 @@ class Cache:
             similarity_threshold_long = 0.95
             normalize = True
 
-        # add more configurations for other embedding models as needed
+        # Add configurations for additional embedding models as needed
         else:
             modelcache_log.error(f"Please add configuration for {embedding_model} in modelcache/cache.py.")
             raise CacheError(f"Please add configuration for {embedding_model} in modelcache/cache.py.")
 
         # ====================== Data manager ==============================#
 
+        # Create coordinated data manager with all storage backends
         data_manager = DataManager.get(
             SQLStorage.get(sql_storage, config=sql_config),
             VectorStorage.get(
@@ -307,6 +380,7 @@ class Cache:
 
         #================== Cache Initialization ====================#
 
+        # Create fully configured Cache instance
         cache = Cache(
             embedding_model = embedding_model,
             similarity_metric_type = similarity_metric_type,

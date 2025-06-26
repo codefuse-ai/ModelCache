@@ -67,3 +67,4 @@ class MemoryCacheEviction(EvictionBase):
     @property
     def policy(self) -> str:
         return self._policy
+

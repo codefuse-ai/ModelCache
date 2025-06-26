@@ -145,6 +145,7 @@ class SQLStorage(CacheStorage):
             conn.close()
 
         if resp is not None and len(resp) == 4:
+            # parse the numpy array from bytes and return the data
             return resp[0], resp[1], np.frombuffer(resp[2], dtype=np.float32), resp[3]
         else:
             return None

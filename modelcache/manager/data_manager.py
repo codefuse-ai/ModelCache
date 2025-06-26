@@ -173,23 +173,24 @@ class SSDataManager(DataManager):
     ):
         self.max_size = max_size
         self.clean_size = clean_size
-        self.s = s
-        self.v = v
-        self.o = o
+        self.s = s  # SQL storage
+        self.v = v  # Vector storage
+        self.o = o  # Object storage (optional)
         self.normalize = normalize
 
-        # added
+        # Initialize memory cache with specified eviction policy
         self.eviction_base = MemoryCacheEviction(
             policy=policy,
             maxsize=max_size,
             clean_size=clean_size)
 
     def save(self, questions: List[any], answers: List[any], embedding_datas: List[any], **kwargs):
+        """Save multiple questions, answers, and embeddings to storage."""
         model = kwargs.pop("model", None)
         self.import_data(questions, answers, embedding_datas, model)
 
-
     def save_query_resp(self, query_resp_dict, **kwargs):
+        """Save query response log to SQL storage for analytics."""
         save_query_start_time = time.time()
         self.s.insert_query_resp(query_resp_dict, **kwargs)
         save_query_delta_time = '{}s'.format(round(time.time() - save_query_start_time, 2))
@@ -220,10 +221,17 @@ class SSDataManager(DataManager):
     def import_data(
         self, questions: List[Any], answers: List[Answer], embedding_datas: List[Any], model: Any
     ):
+        """
+        Add multiple cache entries into all storage backends.
+
+        Coordinates data insertion across SQL, vector, and object storage,
+        with memory cache population and optional vector normalization.
+        """
         if len(questions) != len(answers) or len(questions) != len(embedding_datas):
             raise ParamError("Make sure that all parameters have the same length")
         cache_datas = []
 
+        # Normalize embedding vectors if configured
         if self.normalize:
             embedding_datas = [
                 normalize(embedding_data) for embedding_data in embedding_datas
@@ -236,7 +244,10 @@ class SSDataManager(DataManager):
             embedding_data = embedding_data.astype("float32")
             cache_datas.append([answer, question, embedding_data, model])
 
+        # Insert into SQL storage and get generated IDs
         ids = self.s.batch_insert(cache_datas)
+
+        # Prepare vector data and populate memory cache
         datas = []
         for _id,embedding_data,cache_data in zip(ids,embedding_datas,cache_datas):
             datas.append(VectorData(id=_id, data=embedding_data.astype("float32")))
@@ -244,9 +255,15 @@ class SSDataManager(DataManager):
         self.v.mul_add(datas,model)
 
     def get_scalar_data(self, res_data, **kwargs) -> Optional[CacheData]:
+        """
+        Retrieve scalar data with multi-level caching strategy.
+
+        First checks memory cache, then falls back to SQL storage.
+        """
         model = kwargs.pop("model")
-        #Get Data from RAM Cache
         _id = res_data[1]
+
+        # Try to get from memory cache first (fastest)
         cache_hit = self.eviction_base.get(_id, model=model)
         if cache_hit is not None:
             return cache_hit
@@ -257,12 +274,19 @@ class SSDataManager(DataManager):
         return cache_data
 
     def update_hit_count(self, primary_id, **kwargs):
+        """Update hit count statistics in SQL storage."""
         self.s.update_hit_count_by_id(primary_id)
 
     def hit_cache_callback(self, res_data, **kwargs):
+        """Callback executed on cache hit to update memory cache."""
         self.eviction_base.get(res_data[1])
 
     def search(self, embedding_data, **kwargs):
+        """
+        Search for similar vectors in vector storage.
+
+        Applies normalization if configured and delegates to vector backend.
+        """
         model = kwargs.pop("model", None)
         if self.normalize:
             embedding_data = normalize(embedding_data)
@@ -270,15 +294,24 @@ class SSDataManager(DataManager):
         return self.v.search(data=embedding_data, top_k=top_k, model=model)
 
     def delete(self, id_list, **kwargs):
+        """
+        Delete cache entries from all storage backends.
+
+        Removes from memory cache, vector storage, and marks as deleted in SQL.
+        Returns detailed status of deletion operations.
+        """
         model = kwargs.pop("model")
         try:
+            # Remove from memory cache
             for id in id_list:
-                self.eviction_base.get_cache(model).pop(id, None)  # Remove from in-memory LRU too
+                self.eviction_base.get_cache(model).pop(id, None)
+            # Delete from vector storage
             v_delete_count = self.v.delete(ids=id_list, model=model)
         except Exception as e:
             return {'status': 'failed', 'milvus': 'delete milvus data failed, please check! e: {}'.format(e),
                     'mysql': 'unexecuted'}
         try:
+            # Mark as deleted in SQL storage
             s_delete_count = self.s.mark_deleted(id_list)
         except Exception as e:
             return {'status': 'failed', 'milvus': 'success',
@@ -288,13 +321,20 @@ class SSDataManager(DataManager):
                 'mysql': 'delete_count: '+str(s_delete_count)}
 
     def create_index(self, model, **kwargs):
+        """Create vector index for a specific model."""
         return self.v.create(model)
 
     def truncate(self, model):
-        # drop memory cache data
+        """
+        Truncate all data for a specific model across all storage backends.
+
+        Clears memory cache, rebuilds vector storage, and deletes SQL data.
+        Returns detailed status of truncation operations.
+        """
+        # Clear memory cache data
         self.eviction_base.clear(model)
 
-        # drop vector base data
+        # Rebuild vector storage (drops and recreates collection)
         try:
             vector_resp = self.v.rebuild_col(model)
         except Exception as e:
@@ -302,7 +342,8 @@ class SSDataManager(DataManager):
                     'ScalarDB': 'unexecuted'}
         if vector_resp:
             return {'status': 'failed', 'VectorDB': vector_resp, 'ScalarDB': 'unexecuted'}
-        # drop scalar base data
+
+        # Delete scalar data from SQL storage
         try:
             delete_count = self.s.model_deleted(model)
         except Exception as e:
@@ -311,10 +352,12 @@ class SSDataManager(DataManager):
         return {'status': 'success', 'VectorDB': 'rebuild', 'ScalarDB': 'delete_count: ' + str(delete_count)}
 
     def flush(self):
+        """Flush all storage backends to ensure data persistence."""
         self.s.flush()
         self.v.flush()
 
     def close(self):
+        """Close all storage connections and release resources."""
         self.s.close()
         self.v.close()
 

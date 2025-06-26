@@ -150,3 +150,4 @@ def check_dimension(dimension):
     if dimension <= 0:
         raise ParamError(f"the dimension should be greater than zero, current value: {dimension}.")
 
+
