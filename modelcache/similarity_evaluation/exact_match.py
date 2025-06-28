@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from typing import Tuple, Dict, Any
-from modelcache.similarity_evaluation.similarity_evaluation import SimilarityEvaluation
+from modelcache.similarity_evaluation.base import SimilarityEvaluation
 
 
 class ExactMatchEvaluation(SimilarityEvaluation):

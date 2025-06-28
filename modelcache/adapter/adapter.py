@@ -10,47 +10,50 @@ class ChatCompletion(object):
     """Openai ChatCompletion Wrapper"""
 
     @classmethod
-    def create_query(cls, *args, **kwargs):
+    async def create_query(cls, *args, **kwargs):
         def cache_data_convert(cache_data, cache_query):
             return construct_resp_from_cache(cache_data, cache_query)
         try:
-            return adapt_query(
+            return await adapt_query(
                 cache_data_convert,
                 *args,
                 **kwargs
             )
         except Exception as e:
+            print(e)
             return str(e)
 
     @classmethod
-    def create_insert(cls, *args, **kwargs):
+    async def create_insert(cls, *args, **kwargs):
         try:
-            return adapt_insert(
+            return await adapt_insert(
                 *args,
                 **kwargs
             )
         except Exception as e:
+            print(e)
             return str(e)
 
     @classmethod
-    def create_remove(cls, *args, **kwargs):
+    async def create_remove(cls, *args, **kwargs):
         try:
-            return adapt_remove(
+            return await adapt_remove(
                 *args,
                 **kwargs
             )
         except Exception as e:
-            logging.info('adapt_remove_e: {}'.format(e))
+            print(e)
             return str(e)
 
     @classmethod
-    def create_register(cls, *args, **kwargs):
+    async def create_register(cls, *args, **kwargs):
         try:
-            return adapt_register(
+            return await adapt_register(
                 *args,
                 **kwargs
             )
         except Exception as e:
+            print(e)
             return str(e)
 
 

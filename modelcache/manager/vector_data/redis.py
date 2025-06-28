@@ -6,7 +6,7 @@ from redis.commands.search.query import Query
 from redis.commands.search.field import TagField, VectorField, NumericField
 from redis.client import Redis
 
-from modelcache.manager.vector_data.base import VectorBase, VectorData
+from modelcache.manager.vector_data.base import VectorStorage, VectorData
 from modelcache.utils import import_redis
 from modelcache.utils.log import modelcache_log
 from modelcache.utils.index_util import get_index_name
@@ -14,7 +14,7 @@ from modelcache.utils.index_util import get_index_prefix
 import_redis()
 
 
-class RedisVectorStore(VectorBase):
+class RedisVectorStore(VectorStorage):
     def __init__(
         self,
         host: str = "localhost",

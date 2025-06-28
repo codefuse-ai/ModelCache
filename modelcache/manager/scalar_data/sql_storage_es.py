@@ -8,6 +8,7 @@ from snowflake import SnowflakeGenerator
 
 
 class SQLStorage(CacheStorage):
+
     def __init__(
             self,
             db_type: str = "elasticsearch",
@@ -193,3 +194,6 @@ class SQLStorage(CacheStorage):
         query = {"query": {"match_all": {}}}
         response = self.client.count(index=self.ans_index, body=query)
         return response["count"]
+
+    def flush(self):
+        pass

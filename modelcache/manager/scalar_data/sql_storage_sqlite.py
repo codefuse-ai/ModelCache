@@ -199,3 +199,6 @@ class SQLStorage(CacheStorage):
 
     def count_answers(self):
         pass
+
+    def flush(self):
+        pass

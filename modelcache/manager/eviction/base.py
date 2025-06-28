@@ -9,11 +9,11 @@ class EvictionBase(metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def put(self, objs: List[Any]):
+    def put(self, objs: List[Any], model:str):
         pass
 
     @abstractmethod
-    def get(self, obj: Any):
+    def get(self, obj: Any, model:str):
         pass
 
     @property

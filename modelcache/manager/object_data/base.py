@@ -13,13 +13,13 @@ class ObjectBase(ABC):
         pass
 
     @abstractmethod
-    def get(self, obj: str) -> Any:
-        pass
-
-    @abstractmethod
     def get_access_link(self, obj: str) -> str:
         pass
 
     @abstractmethod
     def delete(self, to_delete: List[str]):
+        pass
+
+    @staticmethod
+    def get(name: str) -> Any:
         pass
