@@ -22,11 +22,10 @@ ModelCache
 - [Architecture](#architecture)
 - [Quick start](#quick-start)
   - [Dependencies](#dependencies)
-  - [Start service](#start-service)
-    - [Start demo](#start-demo)
-    - [Service Startup With Docker-compose](#service-startup-with-docker-compose)
-    - [Start normal service](#start-normal-service)
-- [Visit the service](#visit-the-service)
+  - [Running the service](#running-the-service)
+    - [Demo service](#demo-service)
+    - [Standard service](#standard-service)
+- [Using the service](#using-the-service)
   - [Write cache](#write-cache)
   - [Query cache](#query-cache)
   - [Clear cache](#clear-cache)
@@ -43,7 +42,7 @@ ModelCache
 - [Contributing](#contributing)
 
 ## News
-
+- 🔥🔥[2025.06.28] Added a Websocket-based API, memory cache, multiprocessing-based embedding with configurable amount of workers, bulk-insert support in the backend, python 12 support and massive performance improvements
 - 🔥🔥[2024.10.22] Added tasks for 1024 developer day.
 - 🔥🔥[2024.04.09] Added Redis Search to store and retrieve embeddings in multi-tenant. This can reduce the interaction time between Cache and vector databases to 10ms.
 - 🔥🔥[2023.12.10] Integrated LLM embedding frameworks such as 'llmEmb', 'ONNX', 'PaddleNLP', 'FastText', and the image embedding framework 'timm' to bolster embedding functionality.
@@ -52,18 +51,18 @@ ModelCache
 
 ### Introduction
 
-Codefuse-ModelCache is a semantic cache for large language models (LLMs). By caching pre-generated model results, it reduces response time for similar requests and improves user experience. <br />This project aims to optimize services by introducing a caching mechanism. It helps businesses and research institutions reduce the cost of inference deployment, improve model performance and efficiency, and provide scalable services for large models.  Through open-source, we aim to share and exchange technologies related to large model semantic cache.
+Codefuse-ModelCache is a standalone semantic cache for large language models (LLMs).\
+By caching pre-generated model results, it reduces response time for similar requests and improves user experience. <br />This project aims to optimize services by introducing a caching mechanism. It helps businesses and research institutions reduce the cost of inference deployment, improve model performance and efficiency, and provide scalable services for large models.  Through open-source, we aim to share and exchange technologies related to large model semantic cache.
 
 ## Architecture
 
 ![modelcache modules](docs/modelcache_modules_20240409.png)
 
-## Quick start
+# Quick start
 
-You can find the start script in `flask4modelcache.py` and `flask4modelcache_demo.py`.
-
-- `flask4modelcache_demo.py`: A quick test service that embeds SQLite and FAISS. No database configuration required.
-- `flask4modelcache.py`: The standard service that requires MySQL and Milvus configuration.
+You can find the start scripts at the root of the repository.\
+There are standard services that require MySQL and Milvus configuration, and there are quick test services that use SQLite and FAISS (No database configuration required).\
+The quick test services have `_demo` at the end of the file name
 
 ### Dependencies
 
@@ -74,74 +73,107 @@ You can find the start script in `flask4modelcache.py` and `flask4modelcache_dem
   pip install -r requirements.txt 
   ```
 
-### Start service
+## Running the service
 
-#### Start demo
+### Demo service
+Navigate to the root of the repository and run one of the following:
+- `python flask4modelcache_demo.py`
+- `python fastapi4modelcache_demo.py`
+- `python websocket4modelcache_demo.py`
 
-1. Download the embedding model bin file from [Hugging Face](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place it in the `model/text2vec-base-chinese` folder.
-2. Start the backend service:
+### Standard service
 
-  ```shell
-  cd CodeFuse-ModelCache
-  ```
+You can choose to run the databases via docker-compose or installing them manually onto your machine
 
-  ```shell
-  python flask4modelcache_demo.py
-  ```
-#### Service Startup With Docker-compose
-1. Download the embedding model bin file from [Hugging Face](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Place it in the `model/text2vec-base-chinese` folder.
-2. Configure docker network, only need to execute once
+#### Starting databases using docker-compose
+Navigate to the root of the repository and run
 ```shell
-cd CodeFuse-ModelCache
+docker-compose up -d
 ```
-```shell
-docker network create modelcache
-```
-3. Execute the docker-compose command
-```shell
-# When the modelcache image does not exist locally for the first time, or when the Dockerfile is changed
-docker-compose up --build
-
-# This is not the first run and the Dockerfile has not changed
-docker-compose up
-```
-#### Start normal service
-
-Before you start standard service, do these steps:
-
+#### Manual databases insall
 1. Install MySQL and import the SQL file from `reference_doc/create_table.sql`.
 2. Install vector database Milvus.
 3. Configure database access in:
-   - `modelcache/config/milvus_config.ini`
-   - `modelcache/config/mysql_config.ini`
-4. Download the embedding model bin file from [Hugging Face](https://huggingface.co/shibing624/text2vec-base-chinese/tree/main). Put it in `model/text2vec-base-chinese`.
-5. Start the backend service:
+    - `modelcache/config/milvus_config.ini`
+    - `modelcache/config/mysql_config.ini`
 
-    ```bash
-    python flask4modelcache.py
-    ```
+\-\-\-\-\-\-\-\-\-\-\-\-
 
-## Visit the service
+After installing and running the databases, start a backend service of your choice
+- `python flask4modelcache_demo.py`
+-  `python fastapi4modelcache_demo.py`
+- `python websocket4modelcache_demo.py`
 
-The service provides three core RESTful API functionalities: Cache-Writing, Cache-Querying, and Cache-Clearing.
+## Using the service
 
-### Write cache
+The service provides three core functionalities: Cache-Writing, Cache-Querying, and Cache-Clearing.\
+The service supports both a RESTful API and Websocket API
 
+RESTful API - `flask4modelcache.py` and `fastapi4modelcache.py`\
+Websocket API - `websocket4modelcache.py`
+
+### RESTful API
+#### Write cache
+
+```json
+{
+  "type": "insert",
+  "scope": {
+    "model": "CODEGPT-1008"
+  },
+  "chat_info": [
+    {
+      "query": [
+        {
+          "role": "user",
+          "content": "Who are you?"
+        },
+        {
+          "role": "system",
+          "content": "You are an AI code assistant and you must provide neutral and harmless answers to help users solve code-related problems."
+        }
+      ],
+      "answer": "Hello, I am an intelligent assistant. How can I assist you?"
+    }
+  ]
+}
+```
+Code example
 ```python
 import json
 import requests
 url = 'http://127.0.0.1:5000/modelcache'
 type = 'insert'
 scope = {"model": "CODEGPT-1008"}
-chat_info = [{"query": [{"role": "system", "content": "You are an AI code assistant and you must provide neutral and harmless answers to help users solve code-related problems."}, {"role": "user", "content": "你是谁?"}],
-                  "answer": "Hello, I am an intelligent assistant. How can I assist you?"}]
+chat_info = [{"query": [{"role": "system", "content": "You are an AI code assistant and you must provide neutral and harmless answers to help users solve code-related problems."}, {"role": "user", "content": "Who are you?"}],"answer": "Hello, I am an intelligent assistant. How can I assist you?"}]
 data = {'type': type, 'scope': scope, 'chat_info': chat_info}
+
 headers = {"Content-Type": "application/json"}
 res = requests.post(url, headers=headers, json=json.dumps(data))
 ```
 
-### Query cache
+\-\-\-\-\-\-\-\-\-\-\-\-
 
+#### Query cache
+```json
+{
+  "type": "query",
+  "scope": {
+    "model": "CODEGPT-1008"
+  },
+  "query": [
+    {
+      "role": "user",
+      "content": "Who are you?"
+    },
+    {
+      "role": "system",
+      "content": "You are an AI code assistant and you must provide neutral and harmless answers to help users solve code-related problems."
+    }
+  ]
+}
+```
+Code example
 ```python
 import json
 import requests
@@ -155,8 +187,19 @@ headers = {"Content-Type": "application/json"}
 res = requests.post(url, headers=headers, json=json.dumps(data))
 ```
 
-### Clear cache
+\-\-\-\-\-\-\-\-\-\-\-\-
 
+#### Clear cache
+```json
+{
+  "type": "remove",
+  "scope": {
+    "model": "CODEGPT-1008"
+  },
+  "remove_type": "truncate_by_model"
+}
+```
+Code example
 ```python
 import json
 import requests
@@ -168,6 +211,76 @@ data = {'type': type, 'scope': scope, 'remove_type': remove_type}
 
 headers = {"Content-Type": "application/json"}
 res = requests.post(url, headers=headers, json=json.dumps(data))
+```
+
+### Websocket API
+
+The websocket API is inherently asynchronous, so we need to wrap the request with a request id in order to be able to track it.\
+The service will return a response with the appropriate request id that was given for the request
+
+#### Write cache
+```json
+{
+  "requestId": "943e9450-3467-4d73-9b32-68a337691f6d",
+  "payload": {
+    "type": "insert",
+    "scope": {
+      "model": "CODEGPT-1008"
+    },
+    "chat_info": [
+      {
+        "query": [
+          {
+            "role": "user",
+            "content": "Who are you?"
+          },
+          {
+            "role": "system",
+            "content": "You are an AI code assistant and you must provide neutral and harmless answers to help users solve code-related problems."
+          }
+        ],
+        "answer": "Hello, I am an intelligent assistant. How can I assist you?"
+      }
+    ]
+  }
+}
+```
+
+#### Query cache
+```json
+{
+  "requestId": "51f00484-acc9-406f-807d-29fba672473e",
+  "payload": {
+    "type": "query",
+    "scope": {
+      "model": "CODEGPT-1008"
+    },
+    "query": [
+      {
+        "role": "user",
+        "content": "Who are you?"
+      },
+      {
+        "role": "system",
+        "content": "You are an AI code assistant and you must provide neutral and harmless answers to help users solve code-related problems."
+      }
+    ]
+  }
+}
+```
+
+#### Clear cache
+```json
+{
+  "requestId": "f96bbc87-5ef9-4161-9e96-3076ca97b4b9",
+  "payload": {
+    "type": "remove",
+    "scope": {
+      "model": "CODEGPT-1008"
+    },
+    "remove_type": "truncate_by_model"
+  }
+}
 ```
 
 ## Function comparison
@@ -297,7 +410,8 @@ We've implemented several key updates to our repository. We've resolved network 
 
 ## Features
 
-In ModelCache, we incorporated the core principles of GPTCache. ModelCache has four modules: adapter, embedding, similarity, and data_manager.
+In ModelCache, we incorporated the core principles of GPTCache.\
+ModelCache has four modules: adapter, embedding, similarity, and data_manager.
 
 - The adapter module orchestrates the business logic for various tasks, integrate the embedding, similarity, and data_manager modules.
 - The embedding module converts text into semantic vector representations, and transforms user queries into vectors.
@@ -310,6 +424,10 @@ To make ModelCache more suitable for industrial use, we made several improvement
   - Embedded into LLM products using a Redis-like caching mode
   - Provided semantic caching without interfering with LLM calls, security audits, and other functions
   - Compatible with all LLM services
+- [x] Multiprocessing-based embedding:
+    - True parallel embedding, serving multiple requests at once
+    - Highly scalable, supports configuring the amount of embedding worker.
+    - Enables efficient use of available computing resources
 - [x] Multiple model loading:
   - Supported local embedding model loading, and resolved Hugging Face network connectivity issues
   - Supported loading embedding layers from various pre-trained models
@@ -329,7 +447,7 @@ To make ModelCache more suitable for industrial use, we made several improvement
 
 ### Adapter
 
-- [ ] Register adapter for Milvus：Based on the "model" parameter in the scope, initialize the corresponding Collection and perform the load operation.
+- [x] Register adapter for Milvus：Based on the "model" parameter in the scope, initialize the corresponding Collection and perform the load operation.
 
 ### Embedding model&inference
 
@@ -351,7 +469,7 @@ To make ModelCache more suitable for industrial use, we made several improvement
 
 ### Service
 
-- [ ] Supports FastAPI.
+- [x] Supports FastAPI.
 - [ ] Add visual interface to offer a more direct user experience.
 
 ## Acknowledgements
