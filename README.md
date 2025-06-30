@@ -90,7 +90,7 @@ Navigate to the root of the repository and run
 ```shell
 docker-compose up -d
 ```
-#### Manual databases insall
+#### Manual databases install
 1. Install MySQL and import the SQL file from `reference_doc/create_table.sql`.
 2. Install vector database Milvus.
 3. Configure database access in:
