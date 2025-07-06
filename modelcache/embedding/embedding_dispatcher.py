@@ -2,7 +2,6 @@ import multiprocessing
 import threading
 import uuid
 import asyncio
-import psutil
 from asyncio import Future, AbstractEventLoop
 
 from modelcache.embedding import EmbeddingModel
@@ -56,7 +55,6 @@ class EmbeddingDispatcher:
             )
             p.daemon = True
             p.start()
-            psutil.Process(p.pid).nice(psutil.HIGH_PRIORITY_CLASS)
             self.workers.append(p)
 
     def _start_result_collector_thread(self):
